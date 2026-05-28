@@ -9,20 +9,6 @@ class AttendanceRecord extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'student_id',
-        'timestamp',
-        'method',
-        'status',
-        'location',
-    ];
-
-    protected $casts = [
-        'timestamp' => 'datetime',
-    ];
-
-    public function student()
-    {
-        return $this->belongsTo(Student::class);
-    }
+    protected $fillable = ['user_id', 'school_class_id', 'attendance_date', 'check_in_time', 'check_out_time', 'status', 'source_event_id'];
+    protected function casts(): array { return ['attendance_date' => 'date']; }
 }

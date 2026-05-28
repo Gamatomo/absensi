@@ -1,33 +1,25 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Web\PortalController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+Route::view('/', 'welcome');
 
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function (): void {
+    Route::get('/dashboard', [PortalController::class, 'index'])->name('dashboard');
+    Route::redirect('/students', '/dashboard');
+    Route::redirect('/teachers', '/dashboard');
+    Route::redirect('/attendance', '/dashboard');
+    Route::redirect('/leave-requests', '/dashboard');
+    Route::redirect('/rfid-registration', '/dashboard');
+    Route::redirect('/face-profiles', '/dashboard');
+});
 
-// Student routes
-Route::post('/students', [DashboardController::class, 'storeStudent'])->name('students.store');
-Route::delete('/students/{id}', [DashboardController::class, 'deleteStudent'])->name('students.delete');
-Route::post('/students/upload', [DashboardController::class, 'uploadStudents'])->name('students.upload');
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-// Attendance routes
-Route::post('/attendance', [DashboardController::class, 'storeAttendance'])->name('attendance.store');
-Route::delete('/attendance/{id}', [DashboardController::class, 'deleteAttendance'])->name('attendance.delete');
-
-// Presence kiosk flow for RFID + face recognition
-Route::get('/kiosk', [DashboardController::class, 'showKiosk'])->name('kiosk');
-Route::post('/kiosk/card-scan', [DashboardController::class, 'handleCardScan'])->name('kiosk.card-scan');
-Route::get('/kiosk/face/{student}', [DashboardController::class, 'showFaceRecognition'])->name('kiosk.face');
-Route::post('/kiosk/face-confirm', [DashboardController::class, 'confirmFaceRecognition'])->name('kiosk.face-confirm');
-
+require __DIR__.'/auth.php';
