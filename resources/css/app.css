@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --font-size: 16px;
+    --font-display: 'Libre Baskerville', serif;
+    --font-body: 'Inter', sans-serif;
+    --background: #f8f9fa;
+    --foreground: #1a1d29;
+    --card: #ffffff;
+    --card-foreground: #1a1d29;
+    --popover: #ffffff;
+    --popover-foreground: #1a1d29;
+    --primary: #1e3a8a;
+    --primary-foreground: #ffffff;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #1a1d29;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --accent: #0f172a;
+    --accent-foreground: #ffffff;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --input-background: #ffffff;
+    --switch-background: #cbd5e1;
+    --font-weight-medium: 500;
+    --font-weight-normal: 400;
+    --ring: #1e3a8a;
+    --chart-1: #1e3a8a;
+    --chart-2: #3b82f6;
+    --chart-3: #10b981;
+    --chart-4: #f59e0b;
+    --chart-5: #dc2626;
+    --radius: 0.5rem;
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    html {
+        font-size: var(--font-size);
+    }
+
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-family: var(--font-body);
+    }
+
+    h1, h2, h3, h4 {
+        font-family: var(--font-display);
+        font-weight: var(--font-weight-medium);
+        line-height: 1.5;
+    }
+}
+
+.font-display {
+    font-family: var(--font-display);
+}
