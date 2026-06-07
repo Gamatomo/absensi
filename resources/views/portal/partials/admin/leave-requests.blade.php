@@ -1,7 +1,7 @@
 @php
     $studentIds = collect($students)->pluck('id')->all();
 @endphp
-<div class="space-y-6" x-data="{ activeView:'students', searchQuery:'', filterStatus:'all' }">
+<div class="space-y-6" x-data="leaveRequestAdminData()">
     <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
             <div class="flex items-center gap-3"><div class="p-2.5 bg-orange-500/10 rounded-lg"><x-icon name="file-text" class="w-5 h-5 text-orange-600"/></div><div><h2 class="font-display">Kelola Izin/Cuti</h2><p class="text-sm text-muted-foreground">{{ count($leaveRequests) }} pengajuan</p></div></div>
@@ -32,8 +32,8 @@
                     <div class="flex items-center gap-2">
                         <span class="text-xs uppercase px-3 py-1 rounded-full border border-border {{ $request['status']==='approved'?'bg-chart-3/10 text-chart-3':($request['status']==='rejected'?'bg-chart-5/10 text-chart-5':'bg-chart-4/10 text-chart-4') }}">{{ $request['status'] }}</span>
                         @if($request['status']==='pending')
-                        <button type="button" class="px-3 py-1.5 bg-chart-3/10 text-chart-3 rounded-lg text-sm border border-chart-3/30">Setujui</button>
-                        <button type="button" class="px-3 py-1.5 bg-chart-5/10 text-chart-5 rounded-lg text-sm border border-chart-5/30">Tolak</button>
+                        <button type="button" data-request-id="{{ $request['id'] }}" @click="approveRequest($event)" class="px-3 py-1.5 bg-chart-3/10 text-chart-3 rounded-lg text-sm border border-chart-3/30 disabled:opacity-50">Setujui</button>
+                        <button type="button" data-request-id="{{ $request['id'] }}" @click="rejectRequest($event)" class="px-3 py-1.5 bg-chart-5/10 text-chart-5 rounded-lg text-sm border border-chart-5/30 disabled:opacity-50">Tolak</button>
                         @endif
                     </div>
                 </div>
@@ -41,3 +41,67 @@
         @endforeach
     </div>
 </div>
+
+<script>
+function leaveRequestAdminData() {
+    return {
+        activeView: 'students',
+        searchQuery: '',
+        filterStatus: 'all',
+        processing: null,
+
+        approveRequest(event) {
+            const id = event.currentTarget.dataset.requestId;
+            this.processing = id;
+            fetch(`/leave-requests/${id}/approve`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    alert('Gagal: ' + data.message);
+                    this.processing = null;
+                }
+            })
+            .catch(e => {
+                alert('Error: ' + e.message);
+                this.processing = null;
+            });
+        },
+
+        rejectRequest(event) {
+            if (!confirm('Yakin ingin menolak pengajuan ini?')) return;
+            const id = event.currentTarget.dataset.requestId;
+            this.processing = id;
+            fetch(`/leave-requests/${id}/reject`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    alert('Gagal: ' + data.message);
+                    this.processing = null;
+                }
+            })
+            .catch(e => {
+                alert('Error: ' + e.message);
+                this.processing = null;
+            });
+        }
+    };
+}
+</script>

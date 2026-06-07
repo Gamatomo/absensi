@@ -43,15 +43,15 @@
                             <span class="text-sm text-foreground">Akses Kartu</span>
                         </div>
                     </div>
-                    @if(auth()->user()->role === 'admin')
-                    <button
+                    @if($userRole === 'admin')
+                    {{-- <button
                         type="button"
                         @click="cycleRole()"
                         class="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg border border-primary/30 transition-all"
                     >
                         <x-icon name="user" class="w-4 h-4" />
                         <span class="text-sm" x-text="roleLabels[userRole]"></span>
-                    </button>
+                    </button> --}}
                     @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

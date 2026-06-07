@@ -2,7 +2,7 @@
     $departments = collect($students)->pluck('department')->unique()->filter()->values();
 @endphp
 
-<div class="space-y-6" x-data="{ searchTerm: '', filterDepartment: 'all', showUpload: false, selectedFile: null, parsedCount: 0, uploadStatus: 'idle' }">
+<div class="space-y-6" x-data="studentAdminData()">
     <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-3">
@@ -20,22 +20,30 @@
         <div x-show="showUpload" x-cloak class="mb-6 p-6 bg-secondary/30 rounded-lg border border-border">
             <h3 class="mb-4 font-display">Unggah Data Siswa</h3>
             <div class="flex items-center gap-4">
-                <label class="flex-1 flex items-center gap-3 px-4 py-3 bg-card border-2 border-dashed border-border hover:border-primary rounded-lg cursor-pointer transition-all">
-                    <x-icon name="file-spreadsheet" class="w-5 h-5 text-primary" />
-                    <div class="flex-1">
-                        <p class="text-sm" x-text="selectedFile || 'Pilih file CSV'"></p>
-                        <p class="text-xs text-muted-foreground">Format: CSV dengan header</p>
-                    </div>
-                    <input type="file" accept=".csv" class="hidden" @change="selectedFile = $event.target.files[0]?.name; parsedCount = 1">
-                </label>
+                <form @submit.prevent="uploadFile" class="flex-1 flex items-center gap-3">
+                    <label class="flex-1 flex items-center gap-3 px-4 py-3 bg-card border-2 border-dashed border-border hover:border-primary rounded-lg cursor-pointer transition-all">
+                        <x-icon name="file-spreadsheet" class="w-5 h-5 text-primary" />
+                        <div class="flex-1">
+                            <p class="text-sm" x-text="selectedFile || 'Pilih file CSV'"></p>
+                            <p class="text-xs text-muted-foreground">Format: CSV dengan header</p>
+                        </div>
+                        <input type="file" accept=".csv" name="file" class="hidden" @change="selectedFile = $event.target.files[0]?.name" required>
+                    </label>
+                </form>
                 <a href="data:text/csv;charset=utf-8,id,name,email,nisn,cardId,faceId,department,enrolledDate,phone,address%0ASTU001,Ahmad Rizki,ahmad@example.com,0012345678,CARD123,FACE456,Teknik Informatika,2026-01-15,081234567890,Jakarta" download="template_data_siswa.csv" class="flex items-center gap-2 px-4 py-3 bg-card hover:bg-secondary border border-border rounded-lg transition-all">
                     <x-icon name="download" class="w-4 h-4" /> Template
                 </a>
             </div>
-            <template x-if="parsedCount > 0">
+            <template x-if="selectedFile">
                 <div class="mt-4 p-4 bg-card rounded-lg border border-border">
-                    <p class="text-sm mb-2"><x-icon name="check-circle-2" class="w-4 h-4 text-chart-3 inline" /> Berhasil memproses data siswa (preview)</p>
-                    <button type="button" @click="uploadStatus='success'; setTimeout(() => { showUpload=false; uploadStatus='idle' }, 1500)" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg">Unggah Siswa</button>
+                    <p class="text-sm mb-2"><x-icon name="check-circle-2" class="w-4 h-4 text-chart-3 inline" /> File siap diunggah: <span x-text="selectedFile"></span></p>
+                    <button type="button" @click="submitStudentUpload" :disabled="uploadStatus === 'uploading'" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg disabled:opacity-50">
+                        <span x-show="uploadStatus !== 'uploading'">Unggah Siswa</span>
+                        <span x-show="uploadStatus === 'uploading'">Mengunggah...</span>
+                    </button>
+                    <template x-if="uploadMessage">
+                        <p :class="uploadStatus === 'success' ? 'text-green-600' : 'text-red-600'" class="text-sm mt-2" x-text="uploadMessage"></p>
+                    </template>
                 </div>
             </template>
         </div>
@@ -88,3 +96,50 @@
         @endforeach
     </div>
 </div>
+
+<script>
+function studentAdminData() {
+    return {
+        searchTerm: '',
+        filterDepartment: 'all',
+        showUpload: false,
+        selectedFile: null,
+        uploadStatus: 'idle',
+        uploadMessage: '',
+        fileInput: null,
+
+        submitStudentUpload() {
+            this.uploadStatus = 'uploading';
+            const input = document.querySelector('input[type="file"][name="file"]');
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            fetch('{{ route("students.import") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                this.uploadMessage = data.message;
+                this.uploadStatus = data.success ? 'success' : 'error';
+                if (data.success) {
+                    setTimeout(() => {
+                        this.showUpload = false;
+                        this.selectedFile = null;
+                        this.uploadMessage = '';
+                        window.location.reload();
+                    }, 1500);
+                }
+            })
+            .catch(e => {
+                this.uploadMessage = 'Terjadi kesalahan: ' + e.message;
+                this.uploadStatus = 'error';
+            });
+        }
+    };
+}
+</script>

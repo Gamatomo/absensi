@@ -1,5 +1,5 @@
 @php $subjects = collect($teachers)->pluck('subject')->unique()->filter()->values(); @endphp
-<div class="space-y-6" x-data="{ searchTerm: '', filterSubject: 'all', showUpload: false }">
+<div class="space-y-6" x-data="teacherAdminData()">
     <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-3">
@@ -8,6 +8,36 @@
             </div>
             <button type="button" @click="showUpload=!showUpload" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow-sm"><x-icon name="upload" class="w-4 h-4"/>Unggah Data</button>
         </div>
+
+        <div x-show="showUpload" x-cloak class="mb-6 p-6 bg-secondary/30 rounded-lg border border-border">
+            <h3 class="mb-4 font-display">Unggah Data Guru</h3>
+            <div class="flex items-center gap-4">
+                <label class="flex-1 flex items-center gap-3 px-4 py-3 bg-card border-2 border-dashed border-border hover:border-primary rounded-lg cursor-pointer transition-all">
+                    <x-icon name="file-spreadsheet" class="w-5 h-5 text-primary" />
+                    <div class="flex-1">
+                        <p class="text-sm" x-text="selectedFile || 'Pilih file CSV'"></p>
+                        <p class="text-xs text-muted-foreground">Format: CSV dengan header</p>
+                    </div>
+                    <input type="file" accept=".csv" name="file" class="hidden" @change="selectedFile = $event.target.files[0]?.name" required>
+                </label>
+                <a href="data:text/csv;charset=utf-8,id,name,email,subject,enrolledDate,phone,address%0ATCH001,Budi Santoso,budi@example.com,Matematika,2026-01-15,081234567890,Jakarta" download="template_data_guru.csv" class="flex items-center gap-2 px-4 py-3 bg-card hover:bg-secondary border border-border rounded-lg transition-all">
+                    <x-icon name="download" class="w-4 h-4" /> Template
+                </a>
+            </div>
+            <template x-if="selectedFile">
+                <div class="mt-4 p-4 bg-card rounded-lg border border-border">
+                    <p class="text-sm mb-2"><x-icon name="check-circle-2" class="w-4 h-4 text-chart-3 inline" /> File siap diunggah: <span x-text="selectedFile"></span></p>
+                    <button type="button" @click="submitTeacherUpload" :disabled="uploadStatus === 'uploading'" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg disabled:opacity-50">
+                        <span x-show="uploadStatus !== 'uploading'">Unggah Guru</span>
+                        <span x-show="uploadStatus === 'uploading'">Mengunggah...</span>
+                    </button>
+                    <template x-if="uploadMessage">
+                        <p :class="uploadStatus === 'success' ? 'text-green-600' : 'text-red-600'" class="text-sm mt-2" x-text="uploadMessage"></p>
+                    </template>
+                </div>
+            </template>
+        </div>
+
         <div class="flex flex-col sm:flex-row gap-4">
             <div class="flex-1 relative"><x-icon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"/><input x-model="searchTerm" type="text" placeholder="Cari nama, email, atau ID..." class="w-full pl-11 pr-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary/50"></div>
             <select x-model="filterSubject" class="px-4 py-3 bg-background border border-border rounded-lg"><option value="all">Semua Mapel</option>@foreach($subjects as $s)<option value="{{ $s }}">{{ $s }}</option>@endforeach</select>
@@ -29,3 +59,49 @@
         @endforeach
     </div>
 </div>
+
+<script>
+function teacherAdminData() {
+    return {
+        searchTerm: '',
+        filterSubject: 'all',
+        showUpload: false,
+        selectedFile: null,
+        uploadStatus: 'idle',
+        uploadMessage: '',
+
+        submitTeacherUpload() {
+            this.uploadStatus = 'uploading';
+            const input = document.querySelector('input[type="file"][name="file"]');
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            fetch('{{ route("teachers.import") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                this.uploadMessage = data.message;
+                this.uploadStatus = data.success ? 'success' : 'error';
+                if (data.success) {
+                    setTimeout(() => {
+                        this.showUpload = false;
+                        this.selectedFile = null;
+                        this.uploadMessage = '';
+                        window.location.reload();
+                    }, 1500);
+                }
+            })
+            .catch(e => {
+                this.uploadMessage = 'Terjadi kesalahan: ' + e.message;
+                this.uploadStatus = 'error';
+            });
+        }
+    };
+}
+</script>

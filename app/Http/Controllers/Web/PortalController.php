@@ -9,21 +9,33 @@ use Illuminate\View\View;
 
 class PortalController extends Controller
 {
+    private const ROLE_MAP = [
+        'admin' => 'admin',
+        'teacher' => 'teacher',
+        'guru' => 'teacher',
+        'student' => 'student',
+        'siswa' => 'student',
+        'parent' => 'parent',
+        'orang tua' => 'parent',
+        'orang_tua' => 'parent',
+        'orang_tua' => 'parent',
+    ];
+
     public function __construct(private readonly PortalDataService $portalData) {}
 
     public function index(Request $request): View
     {
         $user = $request->user();
-        $allowedRoles = ['admin', 'student', 'teacher', 'parent'];
-        $defaultRole = in_array($user->role, $allowedRoles, true) ? $user->role : 'admin';
-        $previewRole = $request->query('role', $defaultRole);
+        $defaultRole = $this->normalizeRole($user->role);
+        $previewRole = $this->normalizeRole($request->query('role', $defaultRole));
+        $allowedRoles = array_values(self::ROLE_MAP);
 
         if (! in_array($previewRole, $allowedRoles, true)) {
             $previewRole = $defaultRole;
         }
 
-        if ($user->role !== 'admin' && $previewRole !== $user->role) {
-            $previewRole = $user->role;
+        if ($defaultRole !== 'admin' && $previewRole !== $defaultRole) {
+            $previewRole = $defaultRole;
         }
 
         return view('portal.index', array_merge(
@@ -44,5 +56,16 @@ class PortalController extends Controller
                 ],
             ]
         ));
+    }
+
+    private function normalizeRole(?string $role): string
+    {
+        if (! is_string($role)) {
+            return 'admin';
+        }
+
+        $normalized = strtolower(trim($role));
+
+        return self::ROLE_MAP[$normalized] ?? 'admin';
     }
 }
