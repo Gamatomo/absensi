@@ -5,7 +5,7 @@ use App\Http\Controllers\Web\PortalController;
 use App\Http\Controllers\Web\AttendanceController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
+Route::view('/', 'auth.login')->name('home');
 
 // Public Attendance Routes (Kiosk)
 Route::group(['prefix' => 'attendance', 'middleware' => ['throttle:60,1']], function () {
