@@ -70,7 +70,14 @@
         >
             <div class="flex items-start justify-between mb-4">
                 <div class="flex-1">
-                    <h3 class="mb-1 font-display">{{ $student['name'] }}</h3>
+                    <div class="flex items-center gap-2 mb-1">
+                        <h3 class="font-display">{{ $student['name'] }}</h3>
+                        @if($student['isActive'] ?? true)
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-chart-3/10 text-chart-3 border border-chart-3/30">Aktif</span>
+                        @else
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-chart-5/10 text-chart-5 border border-chart-5/30">Nonaktif</span>
+                        @endif
+                    </div>
                     <p class="text-sm text-muted-foreground font-mono">{{ $student['id'] }}</p>
                 </div>
                 <div class="p-2 bg-primary/10 rounded-lg"><x-icon name="users" class="w-5 h-5 text-primary" /></div>

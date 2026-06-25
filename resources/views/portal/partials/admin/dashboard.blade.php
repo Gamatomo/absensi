@@ -1,4 +1,18 @@
 <div class="space-y-6">
+    @if(($stats['pendingUserCount'] ?? 0) > 0)
+    <div class="bg-chart-4/10 border border-chart-4/30 rounded-lg p-4 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <x-icon name="user-check" class="w-5 h-5 text-chart-4"/>
+            <p class="text-sm">
+                <span class="font-medium">{{ $stats['pendingUserCount'] }} pengguna</span> menunggu verifikasi admin.
+            </p>
+        </div>
+        <button type="button" @click="activeTab='user-verification'; refreshIcons()" class="text-sm px-3 py-1.5 bg-primary text-primary-foreground rounded-lg whitespace-nowrap">
+            Lihat Verifikasi
+        </button>
+    </div>
+    @endif
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         <div class="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
             <div class="p-2.5 bg-primary/10 rounded-lg mb-4 w-fit"><x-icon name="users" class="w-5 h-5 text-primary" /></div>

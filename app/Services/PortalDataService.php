@@ -10,6 +10,7 @@ use App\Models\Schedule;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -24,6 +25,7 @@ class PortalDataService
         $classes = $this->classes();
         $parents = $this->parents();
         $schedules = $this->schedules();
+        $pendingUsers = $this->pendingUsers();
 
         return [
             'students' => $students,
@@ -33,8 +35,9 @@ class PortalDataService
             'classes' => $classes,
             'parents' => $parents,
             'schedules' => $schedules,
+            'pendingUsers' => $pendingUsers,
             'weeklyChart' => $this->weeklyChart($attendanceRecords),
-            'stats' => $this->stats($students, $teachers, $attendanceRecords, $leaveRequests),
+            'stats' => $this->stats($students, $teachers, $attendanceRecords, $leaveRequests, count($pendingUsers)),
             'currentStudent' => collect($students)->firstWhere('id', 'STU001') ?? $students[0] ?? null,
             'currentTeacher' => collect($teachers)->firstWhere('id', 'TCH001') ?? $teachers[0] ?? null,
             'currentParent' => collect($parents)->firstWhere('id', 'PAR001') ?? $parents[0] ?? null,
@@ -53,6 +56,9 @@ class PortalDataService
 
             return [
                 'id' => $student->student_number,
+                'dbId' => $student->id,
+                'userId' => $student->user_id,
+                'isActive' => (bool) ($student->user?->is_active ?? true),
                 'name' => $student->user?->name,
                 'email' => $student->user?->email,
                 'cardId' => $activeCard?->uid,
@@ -78,6 +84,8 @@ class PortalDataService
 
             return [
                 'id' => $teacher->teacher_number,
+                'userId' => $teacher->user_id,
+                'isActive' => (bool) ($teacher->user?->is_active ?? true),
                 'name' => $teacher->user?->name,
                 'email' => $teacher->user?->email,
                 'cardId' => $activeCard?->uid,
@@ -160,6 +168,8 @@ class PortalDataService
         return ParentGuardian::query()->with(['user', 'student.user'])->get()->map(function (ParentGuardian $parent) {
             return [
                 'id' => (string) $parent->id,
+                'userId' => $parent->user_id,
+                'isActive' => (bool) ($parent->user?->is_active ?? true),
                 'name' => $parent->user?->name,
                 'relationship' => $parent->relationship,
                 'phone' => $parent->user?->phone,
@@ -170,6 +180,38 @@ class PortalDataService
                 'occupation' => $parent->occupation,
             ];
         })->all();
+    }
+
+    public function pendingUsers(): array
+    {
+        if (User::query()->doesntExist()) {
+            return [];
+        }
+
+        return User::query()
+            ->where('is_active', false)
+            ->whereIn('role', ['student', 'teacher', 'parent'])
+            ->with(['student', 'teacher', 'parentGuardian'])
+            ->latest()
+            ->get()
+            ->map(function (User $user) {
+                $hasProfile = match ($user->role) {
+                    'student' => $user->student !== null,
+                    'teacher' => $user->teacher !== null,
+                    'parent' => $user->parentGuardian !== null,
+                    default => false,
+                };
+
+                return [
+                    'id' => (string) $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'registeredAt' => $user->created_at?->toIso8601String(),
+                    'hasProfile' => $hasProfile,
+                ];
+            })
+            ->all();
     }
 
     public function schedules(): array
@@ -202,7 +244,7 @@ class PortalDataService
         })->all();
     }
 
-    protected function stats(array $students, array $teachers, array $records, array $leaves): array
+    protected function stats(array $students, array $teachers, array $records, array $leaves, int $pendingUserCount = 0): array
     {
         $today = collect($records)->filter(fn ($r) => Carbon::parse($r['timestamp'])->isToday());
         $presentToday = $today->where('status', 'present')->count();
@@ -215,6 +257,7 @@ class PortalDataService
             'attendanceRate' => $totalStudents > 0 ? number_format(($presentToday / $totalStudents) * 100, 1) : '0',
             'totalRecords' => count($records),
             'totalLeaveRequests' => count($leaves),
+            'pendingUserCount' => $pendingUserCount,
         ];
     }
 

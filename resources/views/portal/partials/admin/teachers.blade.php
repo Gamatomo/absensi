@@ -46,7 +46,18 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         @foreach($teachers as $teacher)
         <div class="bg-card border border-border hover:border-primary/50 rounded-lg p-6 shadow-sm" x-show="(!searchTerm || '{{ strtolower($teacher['name'].' '.$teacher['email'].' '.$teacher['id']) }}'.includes(searchTerm.toLowerCase())) && (filterSubject==='all'||filterSubject==='{{ $teacher['subject'] }}')">
-            <div class="flex justify-between mb-4"><div><h3 class="font-display">{{ $teacher['name'] }}</h3><p class="text-sm text-muted-foreground font-mono">{{ $teacher['id'] }}</p></div><div class="p-2 bg-purple-500/10 rounded-lg"><x-icon name="graduation-cap" class="w-5 h-5 text-purple-600"/></div></div>
+            <div class="flex justify-between mb-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <h3 class="font-display">{{ $teacher['name'] }}</h3>
+                        @if($teacher['isActive'] ?? true)
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-chart-3/10 text-chart-3 border border-chart-3/30">Aktif</span>
+                        @else
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-chart-5/10 text-chart-5 border border-chart-5/30">Nonaktif</span>
+                        @endif
+                    </div>
+                    <p class="text-sm text-muted-foreground font-mono">{{ $teacher['id'] }}</p>
+                </div><div class="p-2 bg-purple-500/10 rounded-lg"><x-icon name="graduation-cap" class="w-5 h-5 text-purple-600"/></div></div>
             <div class="space-y-3 text-sm">
                 <div class="flex gap-3"><x-icon name="mail" class="w-4 h-4 text-muted-foreground"/><span class="text-muted-foreground">{{ $teacher['email'] }}</span></div>
                 <div class="flex gap-3"><x-icon name="book-open" class="w-4 h-4 text-muted-foreground"/><span>{{ $teacher['subject'] }}</span></div>

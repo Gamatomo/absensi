@@ -6,7 +6,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         @foreach($parents as $parent)
         <div class="bg-card border border-border rounded-lg p-6 shadow-sm" x-show="!searchTerm || '{{ strtolower($parent['name'].' '.$parent['studentName'].' '.$parent['email']) }}'.includes(searchTerm.toLowerCase())">
-            <h3 class="font-display mb-1">{{ $parent['name'] }}</h3>
+            <div class="flex items-start justify-between mb-1">
+                <h3 class="font-display">{{ $parent['name'] }}</h3>
+                @if($parent['isActive'] ?? true)
+                <span class="text-xs px-2 py-0.5 rounded-full bg-chart-3/10 text-chart-3 border border-chart-3/30">Aktif</span>
+                @else
+                <span class="text-xs px-2 py-0.5 rounded-full bg-chart-5/10 text-chart-5 border border-chart-5/30">Nonaktif</span>
+                @endif
+            </div>
             <p class="text-sm text-muted-foreground mb-4">{{ $parent['relationship'] }} dari {{ $parent['studentName'] }}</p>
             <div class="space-y-2 text-sm">
                 <div class="flex gap-2"><x-icon name="phone" class="w-4 h-4 text-muted-foreground"/>{{ $parent['phone'] }}</div>

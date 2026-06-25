@@ -9,6 +9,18 @@
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
+        <!-- Role -->
+        <div class="mt-4">
+            <x-input-label for="role" :value="__('Role')" />
+            <select id="role" name="role" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                <option value="" disabled selected>Select a role</option>
+                <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>Student</option>
+                <option value="teacher" {{ old('role') == 'teacher' ? 'selected' : '' }}>Teacher</option>
+                <option value="parent" {{ old('role') == 'parent' ? 'selected' : '' }}>Parent</option>
+            </select>
+            <x-input-error :messages="$errors->get('role')" class="mt-2" />
+        </div>
+
         <!-- Email Address -->
         <div class="mt-4">
             <x-input-label for="email" :value="__('Email')" />

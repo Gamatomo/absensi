@@ -106,9 +106,9 @@
                         <button type="button" @click="parentTab='dashboard'; refreshIcons()" :class="parentTab === 'dashboard' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary/80'" class="inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 gap-2 transition-all">
                             <x-icon name="home" class="w-4 h-4" /> Beranda
                         </button>
-                        <button type="button" @click="parentTab='schedule'; refreshIcons()" :class="parentTab === 'schedule' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary/80'" class="inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 gap-2 transition-all">
+                        {{-- <button type="button" @click="parentTab='schedule'; refreshIcons()" :class="parentTab === 'schedule' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary/80'" class="inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 gap-2 transition-all">
                             <x-icon name="clock" class="w-4 h-4" /> Jadwal Pelajaran
-                        </button>
+                        </button> --}}
                     </div>
                 </div>
                 <div x-show="parentTab === 'dashboard'">@include('portal.partials.parent.dashboard')</div>
@@ -121,11 +121,12 @@
                     <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border whitespace-nowrap">
                         @foreach([
                             'dashboard' => ['bar-chart-3', 'Beranda'],
+                            'user-verification' => ['user-check', 'Verifikasi Pengguna'],
                             'students' => ['users', 'Data Siswa'],
                             'teachers' => ['graduation-cap', 'Data Guru'],
                             'classes' => ['book-open', 'Data Kelas'],
                             'parents' => ['heart', 'Data Orang Tua'],
-                            'schedule' => ['clock', 'Jadwal Pelajaran'],
+                            // 'schedule' => ['clock', 'Jadwal Pelajaran'],
                             'recap' => ['file-spreadsheet', 'Rekap Absensi'],
                             'leave-requests' => ['file-text', 'Kelola Izin/Cuti'],
                         ] as $tab => [$icon, $label])
@@ -138,6 +139,7 @@
                 </div>
 
                 <div x-show="activeTab === 'dashboard'">@include('portal.partials.admin.dashboard')</div>
+                <div x-show="activeTab === 'user-verification'" x-cloak>@include('portal.partials.admin.user-verification')</div>
                 <div x-show="activeTab === 'students'" x-cloak>@include('portal.partials.admin.students')</div>
                 <div x-show="activeTab === 'teachers'" x-cloak>@include('portal.partials.admin.teachers')</div>
                 <div x-show="activeTab === 'classes'" x-cloak>@include('portal.partials.admin.classes')</div>
