@@ -11,11 +11,11 @@
 </head>
 <body class="min-h-screen bg-background text-foreground">
     <header class="border-b border-border bg-card shadow-sm">
-        <div class="container mx-auto px-6 py-5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl tracking-tight">Sistem Presensi</h1>
-                    <p class="text-sm text-muted-foreground">RFID + Face Verification</p>
+        <div class="container mx-auto px-4 sm:px-6 py-3 sm:py-5">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <h1 class="text-lg sm:text-2xl tracking-tight truncate">Sistem Presensi</h1>
+                    <p class="text-xs sm:text-sm text-muted-foreground">RFID + Face Verification</p>
                 </div>
                 <nav class="hidden md:flex items-center gap-2 text-sm">
                     <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg hover:bg-secondary">Dashboard</a>
@@ -27,7 +27,7 @@
         </div>
     </header>
 
-    <main class="container mx-auto px-6 py-8">
+    <main class="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {{ $slot }}
     </main>
 </body>

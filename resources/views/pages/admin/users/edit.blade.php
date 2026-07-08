@@ -101,7 +101,7 @@
 
             @if($activeCard)
                 <div class="mb-6 p-5 rounded-xl bg-primary/5 border-2 border-primary/20">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div class="flex items-center gap-4">
                             <div class="bg-primary/10 p-3 rounded-lg border border-primary/20">
                                 <x-icon name="credit-card" class="w-6 h-6 text-primary"/>

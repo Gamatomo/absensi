@@ -23,7 +23,7 @@
             <div class="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg border border-border"><x-icon name="id-card" class="w-5 h-5 text-muted-foreground"/><div><p class="text-xs text-muted-foreground">NIS/NISN</p><p>{{ $student['nisn'] ?? $student['id'] ?? '-' }}</p></div></div>
         </div>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         <div class="bg-card rounded-xl border border-border shadow-sm p-6"><div class="bg-primary/10 p-3 rounded-lg border border-primary/20 w-fit mb-4"><x-icon name="trending-up" class="w-6 h-6 text-primary"/></div><p class="text-sm text-muted-foreground mb-1">Tingkat Kehadiran</p><h3 class="text-primary text-2xl font-display">{{ $attendanceRate }}%</h3></div>
         <div class="bg-card rounded-xl border border-border shadow-sm p-6"><div class="bg-chart-3/10 p-3 rounded-lg border border-chart-3/20 w-fit mb-4"><x-icon name="check-circle" class="w-6 h-6 text-chart-3"/></div><p class="text-sm text-muted-foreground mb-1">Hadir</p><h3 class="text-chart-3 text-2xl font-display">{{ $presentCount }}</h3><p class="text-xs text-muted-foreground mt-1">dari {{ $totalDays }} hari</p></div>
         <div class="bg-card rounded-xl border border-border shadow-sm p-6"><div class="bg-chart-4/10 p-3 rounded-lg border border-chart-4/20 w-fit mb-4"><x-icon name="clock" class="w-6 h-6 text-chart-4"/></div><p class="text-sm text-muted-foreground mb-1">Terlambat</p><h3 class="text-chart-4 text-2xl font-display">{{ $lateCount }}</h3></div>

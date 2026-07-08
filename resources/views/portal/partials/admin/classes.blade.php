@@ -7,7 +7,7 @@
 @endphp
 <div class="space-y-6" x-data="classAdminData()">
     <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div class="flex items-center gap-3"><div class="p-2.5 bg-primary/10 rounded-lg"><x-icon name="book-open" class="w-5 h-5 text-primary"/></div><div><h2 class="font-display">Data Kelas</h2><p class="text-sm text-muted-foreground">{{ count($classes) }} kelas</p></div></div>
             <button @click="showForm=!showForm" type="button" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg"><x-icon name="plus" class="w-4 h-4"/>Tambah Kelas</button>
         </div>

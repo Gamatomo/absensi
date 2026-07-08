@@ -26,20 +26,20 @@
     "
 >
     <header class="border-b border-border bg-card shadow-sm">
-        <div class="container mx-auto px-6 py-5">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <div class="bg-primary p-3 rounded-lg">
-                        <x-icon name="calendar-check" class="w-8 h-8 text-primary-foreground" />
+        <div class="container mx-auto px-4 sm:px-6 py-3 sm:py-5">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 sm:gap-4 min-w-0">
+                    <div class="bg-primary p-2 sm:p-3 rounded-lg shrink-0">
+                        <x-icon name="calendar-check" class="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground" />
                     </div>
-                    <div>
-                        <h1 class="text-2xl tracking-tight font-display">Sistem Presensi</h1>
-                        <p class="text-sm text-muted-foreground" x-text="roleSubtitles[userRole]"></p>
+                    <div class="min-w-0">
+                        <h1 class="text-lg sm:text-2xl tracking-tight font-display truncate">Sistem Presensi</h1>
+                        <p class="text-xs sm:text-sm text-muted-foreground truncate" x-text="roleSubtitles[userRole]"></p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <div class="hidden md:flex items-center gap-3 bg-secondary px-4 py-2 rounded-lg border border-border">
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <div class="hidden lg:flex items-center gap-3 bg-secondary px-4 py-2 rounded-lg border border-border">
                         <div class="flex items-center gap-2 px-3 py-1.5 bg-background rounded-md border border-border">
                             <x-icon name="scan-face" class="w-4 h-4 text-primary" />
                             <span class="text-sm text-foreground">Pengenalan Wajah</span>
@@ -68,11 +68,11 @@
         </div>
     </header>
 
-    <main class="container mx-auto px-6 py-8">
+    <main class="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {{-- STUDENT PORTAL --}}
         <div x-show="userRole === 'student'">
-                <div class="mb-8">
-                    <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border">
+                <div class="mb-8 overflow-x-auto pb-2">
+                    <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border whitespace-nowrap min-w-max">
                         @foreach(['dashboard' => ['home', 'Beranda'], 'recap' => ['clipboard-list', 'Rekap Absensi'], 'leave' => ['file-text', 'Pengajuan Izin'], 'profile' => ['user', 'Profil']] as $key => [$icon, $label])
                         <button type="button" @click="studentTab='{{ $key }}'; refreshIcons()" :class="studentTab === '{{ $key }}' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary/80'" class="inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 gap-2 transition-all">
                             <x-icon name="{{ $icon }}" class="w-4 h-4" />
@@ -89,8 +89,8 @@
 
         {{-- TEACHER PORTAL --}}
         <div x-show="userRole === 'teacher'" x-cloak>
-                <div class="mb-8">
-                    <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border">
+                <div class="mb-8 overflow-x-auto pb-2">
+                    <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border whitespace-nowrap min-w-max">
                         @foreach(['dashboard' => ['home', 'Beranda'], 'recap' => ['clipboard-list', 'Rekap Absensi'], 'leave' => ['file-text', 'Pengajuan Cuti'], 'profile' => ['user', 'Profil']] as $key => [$icon, $label])
                         <button type="button" @click="teacherTab='{{ $key }}'; refreshIcons()" :class="teacherTab === '{{ $key }}' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary/80'" class="inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 gap-2 transition-all">
                             <x-icon name="{{ $icon }}" class="w-4 h-4" />
@@ -107,8 +107,8 @@
 
         {{-- PARENT PORTAL --}}
         <div x-show="userRole === 'parent'" x-cloak>
-                <div class="mb-8">
-                    <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border">
+                <div class="mb-8 overflow-x-auto pb-2">
+                    <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border whitespace-nowrap min-w-max">
                         @foreach(['dashboard' => ['home', 'Beranda'], 'profile' => ['user', 'Profil']] as $key => [$icon, $label])
                         <button type="button" @click="parentTab='{{ $key }}'; refreshIcons()" :class="parentTab === '{{ $key }}' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary/80'" class="inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 gap-2 transition-all">
                             <x-icon name="{{ $icon }}" class="w-4 h-4" />
@@ -124,8 +124,8 @@
 
         {{-- ADMIN PORTAL --}}
         <div x-show="userRole === 'admin'" x-cloak>
-                <div class="mb-8 overflow-x-auto">
-                    <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border whitespace-nowrap">
+                <div class="mb-8 overflow-x-auto pb-2">
+                    <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border whitespace-nowrap min-w-max">
                         @foreach([
                             'dashboard' => ['bar-chart-3', 'Beranda'],
                             'user-verification' => ['user-check', 'Verifikasi Pengguna'],

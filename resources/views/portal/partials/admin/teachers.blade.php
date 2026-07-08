@@ -1,7 +1,7 @@
 @php $subjects = collect($teachers)->pluck('subject')->unique()->filter()->values(); @endphp
 <div class="space-y-6" x-data="teacherAdminData()">
     <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div class="flex items-center gap-3">
                 <div class="p-2.5 bg-purple-500/10 rounded-lg"><x-icon name="graduation-cap" class="w-5 h-5 text-purple-600" /></div>
                 <div><h2 class="font-display">Data Guru</h2><p class="text-sm text-muted-foreground">{{ count($teachers) }} guru terdaftar</p></div>
@@ -11,7 +11,7 @@
 
         <div x-show="showUpload" x-cloak class="mb-6 p-6 bg-secondary/30 rounded-lg border border-border">
             <h3 class="mb-4 font-display">Unggah Data Guru</h3>
-            <div class="flex items-center gap-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                 <label class="flex-1 flex items-center gap-3 px-4 py-3 bg-card border-2 border-dashed border-border hover:border-primary rounded-lg cursor-pointer transition-all">
                     <x-icon name="file-spreadsheet" class="w-5 h-5 text-primary" />
                     <div class="flex-1">
@@ -105,6 +105,10 @@ function teacherAdminData() {
             .then(r => r.json())
             .then(data => {
                 this.uploadMessage = data.message;
+                if (data.errors && data.errors.length > 0) {
+                    this.uploadMessage += " Detail: " + data.errors.slice(0, 3).join(", ");
+                    if (data.errors.length > 3) this.uploadMessage += " ...";
+                }
                 this.uploadStatus = data.success ? 'success' : 'error';
                 if (data.success) {
                     setTimeout(() => {

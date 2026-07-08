@@ -30,15 +30,29 @@ class TeacherImportController extends Controller
             $file = $request->file('file');
             $stream = fopen($file->getRealPath(), 'r');
 
-            $headers = fgetcsv($stream);
+            // Detect delimiter
+            $firstLine = fgets($stream);
+            $delimiter = ',';
+            if ($firstLine !== false && substr_count($firstLine, ';') > substr_count($firstLine, ',')) {
+                $delimiter = ';';
+            }
+            rewind($stream);
+
+            $headers = fgetcsv($stream, 0, $delimiter);
+            if (isset($headers[0])) {
+                $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headers[0]);
+            }
+            // trim all headers to avoid issues with spaces
+            $headers = array_map('trim', $headers);
+            
             $importedCount = 0;
             $errors = [];
             $row = 1;
 
-            while (($data = fgetcsv($stream)) !== false) {
+            while (($data = fgetcsv($stream, 0, $delimiter)) !== false) {
                 $row++;
 
-                if (empty(array_filter($data))) {
+                if (empty(array_filter($data)) || count($headers) !== count($data)) {
                     continue;
                 }
 
@@ -55,7 +69,7 @@ class TeacherImportController extends Controller
                             'address' => $record['address'] ?? null,
                             'email_verified_at' => now(),
                             'is_active' => true,
-                            'password' => Hash::make('password123'),
+                            'password' => Hash::make($record['id'] ?? 'password123'),
                         ]
                     );
 

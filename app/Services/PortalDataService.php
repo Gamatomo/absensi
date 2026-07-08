@@ -115,20 +115,24 @@ class PortalDataService
 
     public function attendanceRecords(): array
     {
-        if (AttendanceEvent::query()->doesntExist()) {
+        if (\App\Models\AttendanceRecord::query()->doesntExist()) {
             return PortalDemoData::attendanceRecords();
         }
 
-        return AttendanceEvent::query()->with('user.student')->latest('captured_at')->get()->map(function (AttendanceEvent $event) {
-            $studentId = $event->user?->student?->student_number ?? 'UNKNOWN';
+        return \App\Models\AttendanceRecord::query()->with(['user.student', 'user.teacher'])->orderBy('attendance_date', 'desc')->orderBy('check_in_time', 'desc')->get()->map(function (\App\Models\AttendanceRecord $record) {
+            $memberId = $record->user?->student?->student_number ?? $record->user?->teacher?->teacher_number ?? 'UNKNOWN';
+
+            $time = $record->check_in_time ?? '00:00:00';
+            $dateOnly = substr((string) $record->attendance_date, 0, 10);
+            $timestamp = \Carbon\Carbon::parse($dateOnly . ' ' . $time)->toIso8601String();
 
             return [
-                'id' => (string) $event->id,
-                'studentId' => $studentId,
-                'timestamp' => $event->captured_at?->toIso8601String(),
-                'method' => $event->rfid_uid ? 'card' : 'face',
-                'status' => $this->mapStatus($event),
-                'location' => $event->payload['metadata']['location'] ?? null,
+                'id' => (string) $record->id,
+                'studentId' => $memberId,
+                'timestamp' => $timestamp,
+                'method' => 'face',
+                'status' => $record->status,
+                'location' => null,
             ];
         })->all();
     }

@@ -31,15 +31,30 @@ class StudentImportController extends Controller
             $file = $request->file('file');
             $stream = fopen($file->getRealPath(), 'r');
 
-            $headers = fgetcsv($stream);
+            // Detect delimiter
+            $firstLine = fgets($stream);
+            $delimiter = ',';
+            if ($firstLine !== false && substr_count($firstLine, ';') > substr_count($firstLine, ',')) {
+                $delimiter = ';';
+            }
+            rewind($stream);
+
+            $headers = fgetcsv($stream, 0, $delimiter);
+            if (isset($headers[0])) {
+                $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headers[0]);
+            }
+            // trim all headers to avoid issues with spaces
+            $headers = array_map('trim', $headers);
+            
             $importedCount = 0;
             $errors = [];
             $row = 1;
 
-            while (($data = fgetcsv($stream)) !== false) {
+            while (($data = fgetcsv($stream, 0, $delimiter)) !== false) {
                 $row++;
 
-                if (empty(array_filter($data))) {
+                if (empty(array_filter($data)) || count($headers) !== count($data)) {
+                    \Illuminate\Support\Facades\Log::info("Row skipped. Header count: " . count($headers) . ", Data count: " . count($data), ['data' => $data]);
                     continue;
                 }
 
@@ -56,7 +71,7 @@ class StudentImportController extends Controller
                             'address' => $record['address'] ?? null,
                             'email_verified_at' => now(),
                             'is_active' => true,
-                            'password' => Hash::make('password123'),
+                            'password' => Hash::make($record['nisn'] ?? $record['id'] ?? 'password123'),
                         ]
                     );
 
@@ -73,6 +88,7 @@ class StudentImportController extends Controller
 
                     $importedCount++;
                 } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Baris {$row}: " . $e->getMessage());
                     $errors[] = "Baris {$row}: " . $e->getMessage();
                 }
             }

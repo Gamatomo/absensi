@@ -58,7 +58,7 @@
 
         @isset($sidebar)
         {{-- Two-column layout: Scanner (left) + Attendance List (right) --}}
-        <main class="flex-1 gap-6 p-4 sm:p-6 w-full overflow-hidden" style="display: grid; grid-template-columns: 1fr 340px;">
+        <main class="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 p-4 sm:p-6 w-full overflow-hidden">
             {{-- Left: Scanner Area --}}
             <div class="flex flex-col items-center justify-center">
                 <div class="w-full max-w-lg mx-auto">
@@ -70,7 +70,7 @@
                 </div>
             </div>
             {{-- Right: Live Attendance List --}}
-            <div style="min-height: 0;">
+            <div class="min-h-0 lg:max-h-[calc(100vh-12rem)] overflow-y-auto">
                 {{ $sidebar }}
             </div>
         </main>

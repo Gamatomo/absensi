@@ -6,8 +6,8 @@
             <select x-model="filterDay" class="px-4 py-3 border border-border rounded-lg bg-background"><option value="all">Semua Hari</option>@foreach(['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'] as $d)<option value="{{ $d }}">{{ $d }}</option>@endforeach</select>
         </div>
     </div>
-    <div class="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
-        <table class="w-full text-sm">
+    <div class="bg-card border border-border rounded-lg overflow-x-auto shadow-sm">
+        <table class="w-full text-sm min-w-max">
             <thead class="bg-secondary/50 border-b border-border"><tr class="text-left"><th class="p-4">Hari</th><th class="p-4">Waktu</th><th class="p-4">Mapel</th><th class="p-4">Kelas</th><th class="p-4">Guru</th><th class="p-4">Ruang</th></tr></thead>
             <tbody>
             @foreach($schedules as $schedule)

@@ -38,10 +38,20 @@
 
     <div x-show="activeView==='teachers'" x-cloak class="grid grid-cols-1 md:grid-cols-2 gap-4">
         @foreach($teachers as $teacher)
+            @php
+                $records = collect($attendanceRecords)->filter(fn($r) => $r['studentId'] === $teacher['id'] && str_starts_with($r['timestamp'], substr($filterMonth, 0, 7)))->values();
+                $total = $records->count();
+                $present = $records->where('status', 'present')->count();
+                $late = $records->where('status', 'late')->count();
+                $rate = $total > 0 ? number_format((($present + $late) / $total) * 100, 1) : '0';
+            @endphp
             <div class="bg-card border border-border rounded-lg p-5 shadow-sm" x-show="!searchQuery || '{{ strtolower($teacher['name'].' '.$teacher['subject']) }}'.includes(searchQuery.toLowerCase())">
-                <h3 class="font-display">{{ $teacher['name'] }}</h3>
-                <p class="text-sm text-muted-foreground mb-2">{{ $teacher['subject'] }}</p>
-                <p class="text-xs text-muted-foreground">Data kehadiran guru mengikuti event absensi terintegrasi.</p>
+                <div class="flex justify-between mb-3"><div><h3 class="font-display">{{ $teacher['name'] }}</h3><p class="text-sm text-muted-foreground">{{ $teacher['subject'] }}</p></div><span class="text-2xl font-display text-primary">{{ $rate }}%</span></div>
+                <div class="grid grid-cols-3 gap-2 text-center text-sm">
+                    <div class="p-2 bg-chart-3/10 rounded border border-chart-3/20"><p class="font-medium text-chart-3">{{ $present }}</p><p class="text-xs text-muted-foreground">Hadir</p></div>
+                    <div class="p-2 bg-chart-4/10 rounded border border-chart-4/20"><p class="font-medium text-chart-4">{{ $late }}</p><p class="text-xs text-muted-foreground">Telat</p></div>
+                    <div class="p-2 bg-chart-5/10 rounded border border-chart-5/20"><p class="font-medium text-chart-5">{{ $records->where('status','absent')->count() }}</p><p class="text-xs text-muted-foreground">Absen</p></div>
+                </div>
             </div>
         @endforeach
     </div>
