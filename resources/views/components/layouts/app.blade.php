@@ -18,12 +18,7 @@
                     <p class="text-sm text-muted-foreground">RFID + Face Verification</p>
                 </div>
                 <nav class="hidden md:flex items-center gap-2 text-sm">
-                    <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg hover:bg-secondary">Beranda</a>
-                    <a href="{{ route('students.index') }}" class="px-3 py-2 rounded-lg hover:bg-secondary">Siswa</a>
-                    <a href="{{ route('teachers.index') }}" class="px-3 py-2 rounded-lg hover:bg-secondary">Guru</a>
-                    <a href="{{ route('attendance.index') }}" class="px-3 py-2 rounded-lg hover:bg-secondary">Absensi</a>
-                    <a href="{{ route('rfid-registration.index') }}" class="px-3 py-2 rounded-lg hover:bg-secondary">RFID</a>
-                    <a href="{{ route('face-profiles.index') }}" class="px-3 py-2 rounded-lg hover:bg-secondary">Face</a>
+                    <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg hover:bg-secondary">Dashboard</a>
                     @auth
                         <a href="{{ route('profile.edit') }}" class="px-3 py-2 rounded-lg hover:bg-secondary">Profile</a>
                     @endauth

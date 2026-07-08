@@ -80,7 +80,12 @@
                     </div>
                     <p class="text-sm text-muted-foreground font-mono">{{ $student['id'] }}</p>
                 </div>
-                <div class="p-2 bg-primary/10 rounded-lg"><x-icon name="users" class="w-5 h-5 text-primary" /></div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('admin.users.edit', $student['userId']) }}" class="p-2 text-muted-foreground hover:text-primary transition-colors" title="Edit Data & Kelola RFID">
+                        <x-icon name="pencil" class="w-5 h-5" />
+                    </a>
+                    <div class="p-2 bg-primary/10 rounded-lg"><x-icon name="users" class="w-5 h-5 text-primary" /></div>
+                </div>
             </div>
             <div class="space-y-3 text-sm">
                 <div class="flex items-center gap-3"><x-icon name="mail" class="w-4 h-4 text-muted-foreground" /><span class="text-muted-foreground">{{ $student['email'] }}</span></div>

@@ -57,7 +57,14 @@
                         @endif
                     </div>
                     <p class="text-sm text-muted-foreground font-mono">{{ $teacher['id'] }}</p>
-                </div><div class="p-2 bg-purple-500/10 rounded-lg"><x-icon name="graduation-cap" class="w-5 h-5 text-purple-600"/></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('admin.users.edit', $teacher['userId']) }}" class="p-2 text-muted-foreground hover:text-primary transition-colors" title="Edit Data & Kelola RFID">
+                        <x-icon name="pencil" class="w-5 h-5" />
+                    </a>
+                    <div class="p-2 bg-purple-500/10 rounded-lg"><x-icon name="graduation-cap" class="w-5 h-5 text-purple-600"/></div>
+                </div>
+            </div>
             <div class="space-y-3 text-sm">
                 <div class="flex gap-3"><x-icon name="mail" class="w-4 h-4 text-muted-foreground"/><span class="text-muted-foreground">{{ $teacher['email'] }}</span></div>
                 <div class="flex gap-3"><x-icon name="book-open" class="w-4 h-4 text-muted-foreground"/><span>{{ $teacher['subject'] }}</span></div>

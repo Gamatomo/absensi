@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\PortalController;
 use App\Http\Controllers\Web\AttendanceController;
+use App\Http\Controllers\Web\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'auth.login')->name('home');
@@ -25,6 +26,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::redirect('/leave-requests', '/dashboard');
     Route::redirect('/rfid-registration', '/dashboard');
     Route::redirect('/face-profiles', '/dashboard');
+
+    // Admin User Management Routes
+    Route::get('/admin/users/{id}/edit', [UserManagementController::class, 'edit'])->name('admin.users.edit');
+    Route::post('/admin/users/{id}/rfid', [UserManagementController::class, 'assignRfid'])->name('admin.users.assign-rfid');
+    Route::delete('/admin/users/{id}/rfid/{cardId}', [UserManagementController::class, 'revokeRfid'])->name('admin.users.revoke-rfid');
 
     // Portal API routes
     require __DIR__.'/portal.php';
