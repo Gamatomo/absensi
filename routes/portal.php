@@ -19,9 +19,17 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     // Class Routes
     Route::post('/classes', [ClassController::class, 'store'])->name('classes.store');
+    Route::post('/classes/{class}/students', [ClassController::class, 'addStudents'])->name('classes.add-students');
+    Route::delete('/classes/{class}/students/{student}', [ClassController::class, 'removeStudent'])->name('classes.remove-student');
 
     // User Management Routes
     Route::patch('/users/{user}/approve', [UserManagementController::class, 'approve'])->name('users.approve');
-    Route::patch('/users/{user}/reject', [UserManagementController::class, 'reject'])->name('users.reject');
+    Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+
+    // Face Recognition Route
+    Route::post('/face/register', [\App\Http\Controllers\Web\Portal\FaceProfileController::class, 'register'])->name('face.register');
     Route::patch('/users/{user}/deactivate', [UserManagementController::class, 'deactivate'])->name('users.deactivate');
+
+    // Profile Route
+    Route::patch('/portal/profile', [\App\Http\Controllers\Web\Portal\ProfileController::class, 'update'])->name('portal.profile.update');
 });

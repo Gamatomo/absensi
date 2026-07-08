@@ -3,10 +3,10 @@
     class="min-h-screen bg-background"
     x-data="{
         userRole: @js($userRole),
-        activeTab: 'dashboard',
-        studentTab: 'dashboard',
-        teacherTab: 'dashboard',
-        parentTab: 'dashboard',
+        activeTab: localStorage.getItem('activeTab_admin') || 'dashboard',
+        studentTab: localStorage.getItem('activeTab_student') || 'dashboard',
+        teacherTab: localStorage.getItem('activeTab_teacher') || 'dashboard',
+        parentTab: localStorage.getItem('activeTab_parent') || 'dashboard',
         roles: ['admin', 'student', 'teacher', 'parent'],
         roleLabels: @js($roleLabels),
         roleSubtitles: @js($roleSubtitles),
@@ -17,7 +17,13 @@
         },
         refreshIcons() { $nextTick(() => window.lucide && window.lucide.createIcons()); }
     }"
-    x-init="refreshIcons()"
+    x-init="
+        $watch('activeTab', value => localStorage.setItem('activeTab_admin', value));
+        $watch('studentTab', value => localStorage.setItem('activeTab_student', value));
+        $watch('teacherTab', value => localStorage.setItem('activeTab_teacher', value));
+        $watch('parentTab', value => localStorage.setItem('activeTab_parent', value));
+        refreshIcons();
+    "
 >
     <header class="border-b border-border bg-card shadow-sm">
         <div class="container mx-auto px-6 py-5">
@@ -103,16 +109,17 @@
         <div x-show="userRole === 'parent'" x-cloak>
                 <div class="mb-8">
                     <div class="inline-flex h-11 items-center justify-center rounded-lg bg-secondary p-1 text-muted-foreground border border-border">
-                        <button type="button" @click="parentTab='dashboard'; refreshIcons()" :class="parentTab === 'dashboard' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary/80'" class="inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 gap-2 transition-all">
-                            <x-icon name="home" class="w-4 h-4" /> Beranda
+                        @foreach(['dashboard' => ['home', 'Beranda'], 'profile' => ['user', 'Profil']] as $key => [$icon, $label])
+                        <button type="button" @click="parentTab='{{ $key }}'; refreshIcons()" :class="parentTab === '{{ $key }}' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary/80'" class="inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 gap-2 transition-all">
+                            <x-icon name="{{ $icon }}" class="w-4 h-4" />
+                            {{ $label }}
                         </button>
-                        {{-- <button type="button" @click="parentTab='schedule'; refreshIcons()" :class="parentTab === 'schedule' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary/80'" class="inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 gap-2 transition-all">
-                            <x-icon name="clock" class="w-4 h-4" /> Jadwal Pelajaran
-                        </button> --}}
+                        @endforeach
                     </div>
                 </div>
                 <div x-show="parentTab === 'dashboard'">@include('portal.partials.parent.dashboard')</div>
                 <div x-show="parentTab === 'schedule'" x-cloak>@include('portal.partials.parent.schedule')</div>
+                <div x-show="parentTab === 'profile'" x-cloak>@include('portal.partials.parent.profile')</div>
         </div>
 
         {{-- ADMIN PORTAL --}}

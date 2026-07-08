@@ -1,4 +1,8 @@
 <x-layouts.kiosk title="RFID Check-in" subtitle="Tempelkan kartu RFID Anda" accent="rfid">
+    <x-slot:sidebar>
+        <x-live-attendance-list />
+    </x-slot:sidebar>
+
     <div
         class="bg-card border border-border rounded-2xl shadow-xl shadow-primary/5 overflow-hidden"
         x-data="rfidCheckIn()"
@@ -168,12 +172,10 @@
                     this.$nextTick(() => window.lucide?.createIcons());
 
                     if (data.success) {
+                        window.dispatchEvent(new CustomEvent('attendance-logged'));
                         setTimeout(() => {
-                            this.message = '';
-                            this.userName = '';
-                            this.checkInTime = '';
-                            document.getElementById('cardInput')?.focus();
-                        }, 3500);
+                            window.location.href = '{{ route("attendance.face") }}?profile_key=' + data.profile_key;
+                        }, 1500);
                     }
                 })
                 .catch(e => {

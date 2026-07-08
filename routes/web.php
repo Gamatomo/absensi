@@ -14,6 +14,8 @@ Route::group(['prefix' => 'attendance', 'middleware' => ['throttle:60,1']], func
 
     Route::get('/face-recognition', [AttendanceController::class, 'faceRecognition'])->name('attendance.face');
     Route::post('/face-verify', [AttendanceController::class, 'faceVerify'])->name('attendance.face-verify');
+    Route::post('/face-verify-camera', [AttendanceController::class, 'faceVerifyCamera'])->name('attendance.face-verify-camera');
+    Route::get('/live-list', [AttendanceController::class, 'liveList'])->name('attendance.live-list');
 });
 
 Route::middleware(['auth', 'verified'])->group(function (): void {

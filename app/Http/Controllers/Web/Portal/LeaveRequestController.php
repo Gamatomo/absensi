@@ -16,16 +16,30 @@ class LeaveRequestController extends Controller
     {
         $user = $request->user();
 
-        $validated = $request->validate([
-            'reason' => 'required|string|max:255',
-            'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|string|max:1000',
-        ]);
+        try {
+            $validated = $request->validate([
+                'reason' => 'required|string|max:255',
+                'start_date' => 'required|date|after_or_equal:today',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'description' => 'nullable|string|max:1000',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => collect($e->errors())->flatten()->first(),
+            ], 422);
+        }
+
+        // Determine request_type based on user role
+        $requestType = match($user->role) {
+            'teacher', 'guru' => 'teacher_leave',
+            default => 'student_leave',
+        };
 
         try {
             $leaveRequest = LeaveRequest::create([
                 'user_id' => $user->id,
+                'request_type' => $requestType,
                 'reason' => $validated['reason'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
@@ -35,7 +49,7 @@ class LeaveRequestController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pengajuan izin telah dikirim',
+                'message' => 'Pengajuan izin telah dikirim!',
                 'data' => $leaveRequest,
             ], 201);
         } catch (\Exception $e) {

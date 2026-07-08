@@ -1,4 +1,8 @@
 <x-layouts.kiosk title="Face Recognition" subtitle="Verifikasi wajah Anda" accent="face">
+    <x-slot:sidebar>
+        <x-live-attendance-list />
+    </x-slot:sidebar>
+
     <div
         class="bg-card border border-border rounded-2xl shadow-xl shadow-emerald-500/5 overflow-hidden"
         x-data="faceRecognition()"
@@ -25,20 +29,23 @@
                     {{-- Scan line --}}
                     <div class="absolute left-6 right-6 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent kiosk-scan-line shadow-[0_0_12px_rgba(52,211,153,0.6)]"></div>
 
+                    {{-- Camera Feed --}}
+                    <video x-ref="video" autoplay playsinline class="absolute inset-0 w-full h-full object-cover transform -scale-x-100 opacity-80 mix-blend-screen"></video>
+                    <canvas x-ref="canvas" class="hidden" width="640" height="640"></canvas>
+
                     {{-- Center content --}}
-                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 pointer-events-none">
                         <div class="relative mb-4">
-                            <div class="absolute inset-0 rounded-full bg-emerald-400/20 blur-xl scale-150"></div>
-                            <div class="relative w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center">
-                                <i data-lucide="user-round" class="w-10 h-10 text-emerald-300"></i>
+                            <div class="absolute inset-0 rounded-full bg-emerald-400/20 blur-xl scale-150" :class="isScanning ? 'animate-pulse' : ''"></div>
+                            <div class="relative w-20 h-20 rounded-full border border-emerald-400/40 flex items-center justify-center" :class="isScanning ? 'border-emerald-400 border-2' : ''">
                             </div>
                         </div>
-                        <p class="text-emerald-100 font-medium text-sm sm:text-base">Posisikan wajah di dalam bingkai</p>
-                        <p class="text-emerald-400/70 text-xs mt-1">Pastikan pencahayaan cukup dan wajah menghadap kamera</p>
+                        <p class="text-emerald-100 font-medium text-sm sm:text-base" x-show="!profileKey">Posisikan wajah di dalam bingkai</p>
+                        <p class="text-emerald-100 font-medium text-sm sm:text-base" x-show="profileKey">Verifikasi Wajah 2-Langkah</p>
                     </div>
 
                     {{-- Grid overlay --}}
-                    <div class="absolute inset-0 opacity-[0.07]" style="background-image: linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px); background-size: 24px 24px;"></div>
+                    <div class="absolute inset-0 opacity-[0.07] pointer-events-none" style="background-image: linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px); background-size: 24px 24px;"></div>
                 </div>
 
                 <div class="flex items-center justify-center gap-6 text-sm">
@@ -146,9 +153,115 @@
             userName: '',
             checkInTime: '',
             loading: false,
+            isScanning: true,
             showManualInput: false,
             manualFaceId: '',
             latestEventName: @json($latestEvent?->name ?? 'Tidak ada event'),
+            stream: null,
+            scanInterval: null,
+            profileKey: new URLSearchParams(window.location.search).get('profile_key'),
+
+            async init() {
+                if (!this.profileKey) {
+                    this.message = "Sesi tidak valid. Harap mulai dari tap kartu RFID terlebih dahulu.";
+                    this.messageType = 'error';
+                    this.isScanning = false;
+                    setTimeout(() => {
+                        window.location.href = '{{ route("attendance.rfid") }}';
+                    }, 3000);
+                    return;
+                }
+
+                this.$watch('showManualInput', (val) => {
+                    if (val) this.stopCamera();
+                    else this.startCamera();
+                });
+                await this.startCamera();
+            },
+
+            async startCamera() {
+                try {
+                    this.stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { width: 640, height: 640, facingMode: "user" } 
+                    });
+                    this.$refs.video.srcObject = this.stream;
+                    this.isScanning = true;
+                    this.startScanning();
+                } catch (err) {
+                    this.message = "Gagal mengakses kamera: " + err.message;
+                    this.messageType = 'error';
+                    this.isScanning = false;
+                }
+            },
+
+            stopCamera() {
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                    this.stream = null;
+                }
+                if (this.scanInterval) {
+                    clearInterval(this.scanInterval);
+                }
+                this.isScanning = false;
+            },
+
+            startScanning() {
+                if (this.scanInterval) clearInterval(this.scanInterval);
+                
+                this.scanInterval = setInterval(() => {
+                    if (this.loading || !this.isScanning || !this.stream) return;
+                    this.captureAndVerify();
+                }, 2000);
+            },
+
+            captureAndVerify() {
+                const video = this.$refs.video;
+                const canvas = this.$refs.canvas;
+                const context = canvas.getContext('2d');
+                
+                context.translate(canvas.width, 0);
+                context.scale(-1, 1);
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                context.setTransform(1, 0, 0, 1, 0, 0);
+
+                const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                
+                fetch(@json(route('attendance.face-verify-camera')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({ image: imageDataUrl, profile_key: this.profileKey, device_id: 'kiosk-camera-01' })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        // Match found! Show success, pause scanning
+                        this.loading = true;
+                        this.isScanning = false;
+                        
+                        this.message = data.message;
+                        this.messageType = data.type;
+                        this.userName = data.name || '';
+                        this.checkInTime = data.time || '';
+                        this.$nextTick(() => window.lucide?.createIcons());
+
+                        // Trigger live list refresh
+                        window.dispatchEvent(new CustomEvent('attendance-logged'));
+
+                        // Resume after 3.5 seconds
+                        setTimeout(() => {
+                            window.location.href = '{{ route("attendance.rfid") }}';
+                        }, 3500);
+                    }
+                    // If not success (no match), do nothing and wait for next interval
+                })
+                .catch(e => {
+                    console.error("Scanning error:", e);
+                });
+            },
 
             submitFace() {
                 const faceId = document.getElementById('faceInput').value.trim();

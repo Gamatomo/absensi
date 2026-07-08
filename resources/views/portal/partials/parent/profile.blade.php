@@ -1,15 +1,15 @@
-@php $teacher = $currentTeacher; @endphp
+@php $parent = $currentParent; @endphp
 <div class="space-y-6 max-w-3xl">
     <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
-        <h2 class="font-display mb-6 flex items-center gap-2"><x-icon name="user" class="w-5 h-5 text-primary"/>Profil Guru</h2>
+        <h2 class="font-display mb-6 flex items-center gap-2"><x-icon name="user" class="w-5 h-5 text-primary"/>Profil Orang Tua</h2>
         <form method="POST" action="{{ route('portal.profile.update') }}" class="space-y-4">
             @csrf
             @method('patch')
             <div class="grid md:grid-cols-2 gap-4">
-                <div><label class="text-sm text-muted-foreground">Nama</label><input name="name" value="{{ $teacher['name'] ?? '' }}" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background"></div>
-                <div><label class="text-sm text-muted-foreground">Email</label><input name="email" value="{{ $teacher['email'] ?? '' }}" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background"></div>
-                <div><label class="text-sm text-muted-foreground">Mata Pelajaran</label><input name="subject" value="{{ $teacher['subject'] ?? '' }}" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background"></div>
-                <div><label class="text-sm text-muted-foreground">Telepon</label><input name="phone" value="{{ $teacher['phone'] ?? '' }}" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background"></div>
+                <div><label class="text-sm text-muted-foreground">Nama</label><input name="name" value="{{ $parent['name'] ?? '' }}" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background"></div>
+                <div><label class="text-sm text-muted-foreground">Email</label><input name="email" value="{{ $parent['email'] ?? '' }}" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background"></div>
+                <div><label class="text-sm text-muted-foreground">Hubungan</label><input name="relationship" value="{{ $parent['relationship'] ?? '' }}" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background"></div>
+                <div><label class="text-sm text-muted-foreground">Telepon</label><input name="phone" value="{{ $parent['phone'] ?? '' }}" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background"></div>
             </div>
             <button type="submit" class="px-4 py-2 bg-primary text-primary-foreground rounded-lg">Simpan Perubahan</button>
         </form>

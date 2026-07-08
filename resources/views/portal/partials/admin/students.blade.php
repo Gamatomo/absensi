@@ -85,6 +85,9 @@
             <div class="space-y-3 text-sm">
                 <div class="flex items-center gap-3"><x-icon name="mail" class="w-4 h-4 text-muted-foreground" /><span class="text-muted-foreground">{{ $student['email'] }}</span></div>
                 <div class="flex items-center gap-3"><x-icon name="building-2" class="w-4 h-4 text-muted-foreground" /><span>{{ $student['department'] }}</span></div>
+                @if(!empty($student['className']))
+                <div class="flex items-center gap-3"><x-icon name="book-open" class="w-4 h-4 text-muted-foreground" /><span class="font-medium text-primary">Kelas: {{ $student['className'] }}</span></div>
+                @endif
                 <div class="flex items-center gap-3"><x-icon name="calendar" class="w-4 h-4 text-muted-foreground" /><span class="text-muted-foreground">Terdaftar: {{ \Carbon\Carbon::parse($student['enrolledDate'])->locale('id')->isoFormat('D MMM YYYY') }}</span></div>
             </div>
             <div class="flex gap-2 mt-4 pt-4 border-t border-border">

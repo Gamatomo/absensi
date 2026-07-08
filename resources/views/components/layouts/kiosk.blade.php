@@ -56,6 +56,26 @@
             </div>
         </header>
 
+        @isset($sidebar)
+        {{-- Two-column layout: Scanner (left) + Attendance List (right) --}}
+        <main class="flex-1 gap-6 p-4 sm:p-6 w-full overflow-hidden" style="display: grid; grid-template-columns: 1fr 340px;">
+            {{-- Left: Scanner Area --}}
+            <div class="flex flex-col items-center justify-center">
+                <div class="w-full max-w-lg mx-auto">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl sm:text-3xl font-display tracking-tight">{{ $subtitle }}</h2>
+                        <p class="text-sm text-muted-foreground mt-2">Posisikan diri Anda di depan perangkat kiosk</p>
+                    </div>
+                    {{ $slot }}
+                </div>
+            </div>
+            {{-- Right: Live Attendance List --}}
+            <div style="min-height: 0;">
+                {{ $sidebar }}
+            </div>
+        </main>
+        @else
+        {{-- Single-column layout (no sidebar) --}}
         <main class="flex-1 flex items-center justify-center p-4 sm:p-8">
             <div class="w-full max-w-lg">
                 <div class="text-center mb-6">
@@ -65,6 +85,7 @@
                 {{ $slot }}
             </div>
         </main>
+        @endisset
 
         <footer class="border-t border-border/80 bg-card/60 backdrop-blur-sm py-4">
             <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">

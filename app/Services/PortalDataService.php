@@ -18,6 +18,8 @@ class PortalDataService
 {
     public function payload(): array
     {
+        $authUser = auth()->user();
+
         $students = $this->students();
         $teachers = $this->teachers();
         $attendanceRecords = $this->attendanceRecords();
@@ -26,6 +28,17 @@ class PortalDataService
         $parents = $this->parents();
         $schedules = $this->schedules();
         $pendingUsers = $this->pendingUsers();
+
+        // Resolve currentStudent/Teacher/Parent from the logged-in user
+        $currentStudent = $authUser
+            ? (collect($students)->firstWhere('userId', $authUser->id) ?? $students[0] ?? null)
+            : ($students[0] ?? null);
+        $currentTeacher = $authUser
+            ? (collect($teachers)->firstWhere('userId', $authUser->id) ?? $teachers[0] ?? null)
+            : ($teachers[0] ?? null);
+        $currentParent = $authUser
+            ? (collect($parents)->firstWhere('userId', $authUser->id) ?? $parents[0] ?? null)
+            : ($parents[0] ?? null);
 
         return [
             'students' => $students,
@@ -38,9 +51,9 @@ class PortalDataService
             'pendingUsers' => $pendingUsers,
             'weeklyChart' => $this->weeklyChart($attendanceRecords),
             'stats' => $this->stats($students, $teachers, $attendanceRecords, $leaveRequests, count($pendingUsers)),
-            'currentStudent' => collect($students)->firstWhere('id', 'STU001') ?? $students[0] ?? null,
-            'currentTeacher' => collect($teachers)->firstWhere('id', 'TCH001') ?? $teachers[0] ?? null,
-            'currentParent' => collect($parents)->firstWhere('id', 'PAR001') ?? $parents[0] ?? null,
+            'currentStudent' => $currentStudent,
+            'currentTeacher' => $currentTeacher,
+            'currentParent' => $currentParent,
         ];
     }
 
@@ -50,7 +63,7 @@ class PortalDataService
             return PortalDemoData::students();
         }
 
-        return Student::query()->with(['user', 'user.rfidCards', 'user.faceProfiles'])->get()->map(function (Student $student) {
+        return Student::query()->with(['user', 'user.rfidCards', 'user.faceProfiles', 'classes'])->get()->map(function (Student $student) {
             $activeCard = $student->user?->rfidCards->firstWhere('status', 'active');
             $activeFace = $student->user?->faceProfiles->firstWhere('is_active', true);
 
@@ -68,6 +81,8 @@ class PortalDataService
                 'nisn' => $student->nisn,
                 'phone' => $student->user?->phone,
                 'address' => $student->user?->address,
+                'className' => $student->classes->first()?->name,
+                'classId' => $student->classes->first()?->id,
             ];
         })->all();
     }
@@ -127,7 +142,10 @@ class PortalDataService
         return LeaveRequest::query()->with('user.student')->latest()->get()->map(function (LeaveRequest $request) {
             return [
                 'id' => (string) $request->id,
+                'userId' => (string) $request->user_id,
                 'studentId' => $request->user?->student?->student_number ?? (string) $request->user_id,
+                'requestType' => $request->request_type,
+                'userName' => $request->user?->name,
                 'reason' => $request->reason,
                 'startDate' => $request->start_date?->format('Y-m-d'),
                 'endDate' => $request->end_date?->format('Y-m-d'),

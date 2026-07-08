@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\SchoolClass;
+use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 
@@ -45,4 +46,63 @@ class ClassController extends Controller
             ], 500);
         }
     }
+
+    public function addStudents(Request $request, SchoolClass $class)
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'student_ids' => 'required|array|min:1',
+            'student_ids.*' => 'exists:students,id',
+        ]);
+
+        try {
+            // Sync without detaching — only adds new ones
+            $class->students()->syncWithoutDetaching($validated['student_ids']);
+
+            return response()->json([
+                'success' => true,
+                'message' => count($validated['student_ids']) . ' siswa berhasil ditambahkan ke kelas ' . $class->name,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan siswa: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function removeStudent(Request $request, SchoolClass $class, Student $student)
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin',
+            ], 403);
+        }
+
+        try {
+            $class->students()->detach($student->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Siswa berhasil dihapus dari kelas ' . $class->name,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus siswa: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }
+

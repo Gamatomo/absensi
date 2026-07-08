@@ -1,14 +1,42 @@
 @php
     $teacher = $currentTeacher;
-    $myRequests = collect($leaveRequests)->where('studentId', $teacher['id'] ?? '');
+    $myRequests = collect($leaveRequests)->where('userId', (string) ($teacher['userId'] ?? ''));
 @endphp
-<div class="space-y-6" x-data="{ loading: false, message: '', messageType: '' }">
+<div class="space-y-6" x-data="{
+    loading: false,
+    message: '',
+    messageType: '',
+    submitLeaveRequest(event) {
+        this.loading = true;
+        this.message = '';
+        const formData = new FormData(event.target);
+        fetch('{{ route('leave-requests.store') }}', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            this.message = data.message;
+            this.messageType = data.success ? 'success' : 'error';
+            if (data.success) {
+                event.target.reset();
+                setTimeout(() => window.location.reload(), 1500);
+            }
+        })
+        .catch(e => {
+            this.message = 'Terjadi kesalahan: ' + e.message;
+            this.messageType = 'error';
+        })
+        .finally(() => this.loading = false);
+    }
+}">
     <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
         <h2 class="font-display mb-4 flex items-center gap-2"><x-icon name="file-text" class="w-5 h-5 text-primary"/>Pengajuan Cuti</h2>
         <template x-if="message">
             <div :class="messageType === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'" class="mb-4 p-3 border rounded-lg text-sm" x-text="message"></div>
         </template>
-        <form @submit.prevent="submitLeaveRequest" class="grid md:grid-cols-2 gap-4">
+        <form @submit.prevent="submitLeaveRequest($event)" class="grid md:grid-cols-2 gap-4">
             @csrf
             <div>
                 <label class="text-sm text-muted-foreground">Alasan</label>
@@ -37,7 +65,8 @@
     <div class="space-y-3">
         @forelse($myRequests as $request)
         <div class="bg-card border border-border rounded-lg p-4">
-            <div class="flex justify-between"><p class="font-medium">{{ $request['reason'] }}</p><span class="text-xs uppercase px-2 py-1 rounded border">{{ $request['status'] }}</span></div>
+            <div class="flex justify-between"><p class="font-medium">{{ $request['reason'] }}</p>
+            <span class="text-xs uppercase px-2 py-1 rounded border @if(($request['status'] ?? '') === 'approved') bg-green-50 border-green-200 text-green-700 @elseif(($request['status'] ?? '') === 'rejected') bg-red-50 border-red-200 text-red-700 @else bg-yellow-50 border-yellow-200 text-yellow-700 @endif">{{ $request['status'] }}</span></div>
             <p class="text-sm text-muted-foreground mt-1">{{ $request['startDate'] }} – {{ $request['endDate'] }}</p>
         </div>
         @empty
@@ -46,35 +75,3 @@
     </div>
 </div>
 
-<script>
-function teacherLeaveData() {
-    return {
-        submitLeaveRequest() {
-            this.loading = true;
-            const formData = new FormData(event.target);
-
-            fetch('{{ route("leave-requests.store") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            })
-            .then(r => r.json())
-            .then(data => {
-                this.message = data.message;
-                this.messageType = data.success ? 'success' : 'error';
-                if (data.success) {
-                    event.target.reset();
-                    setTimeout(() => window.location.reload(), 1500);
-                }
-            })
-            .catch(e => {
-                this.message = 'Terjadi kesalahan: ' + e.message;
-                this.messageType = 'error';
-            })
-            .finally(() => this.loading = false);
-        }
-    };
-}
-</script>
