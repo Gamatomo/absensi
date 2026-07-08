@@ -13,7 +13,7 @@
     </div>
     @endif
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6">
         <div class="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
             <div class="p-2.5 bg-primary/10 rounded-lg mb-4 w-fit"><x-icon name="users" class="w-5 h-5 text-primary" /></div>
             <h3 class="text-3xl mb-1 font-display">{{ $stats['totalStudents'] }}</h3>
