@@ -30,14 +30,14 @@
     </style>
     @stack('head')
 </head>
-<body class="min-h-screen bg-background text-foreground antialiased overflow-x-hidden">
+<body class="h-screen w-screen overflow-hidden bg-background text-foreground antialiased">
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div class="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-primary/10 blur-3xl"></div>
         <div class="absolute -bottom-32 -left-24 h-96 w-96 rounded-full blur-3xl {{ $accent === 'face' ? 'bg-emerald-500/10' : 'bg-blue-500/10' }}"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[32rem] w-[32rem] rounded-full bg-secondary/60 blur-3xl"></div>
     </div>
 
-    <div class="min-h-screen flex flex-col">
+    <div class="h-screen flex flex-col">
         <header class="border-b border-border/80 bg-card/80 backdrop-blur-md">
             <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
@@ -58,9 +58,9 @@
 
         @isset($sidebar)
         {{-- Two-column layout: Scanner (left) + Attendance List (right) --}}
-        <main class="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 p-4 sm:p-6 w-full overflow-hidden">
+        <main class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_340px] gap-6 p-4 sm:p-6 w-full overflow-hidden">
             {{-- Left: Scanner Area --}}
-            <div class="flex flex-col items-center justify-center">
+            <div class="flex flex-col items-center justify-center h-full">
                 <div class="w-full max-w-lg mx-auto">
                     <div class="text-center mb-6">
                         <h2 class="text-2xl sm:text-3xl font-display tracking-tight">{{ $subtitle }}</h2>
@@ -70,7 +70,7 @@
                 </div>
             </div>
             {{-- Right: Live Attendance List --}}
-            <div class="min-h-0 lg:max-h-[calc(100vh-12rem)] overflow-y-auto">
+            <div class="h-full overflow-y-auto pr-2 pb-12">
                 {{ $sidebar }}
             </div>
         </main>
