@@ -34,9 +34,10 @@
                 </div>
                 <p class="text-lg font-medium font-display">Menunggu Kartu...</p>
                 <p class="text-sm text-muted-foreground mt-2">Dekatkan kartu RFID ke reader</p>
-                <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/15 text-sm text-primary">
+                <div class="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-full border text-sm"
+                     :class="wsConnected ? 'bg-primary/5 border-primary/15 text-primary' : 'bg-chart-5/5 border-chart-5/15 text-chart-5'">
                     <i data-lucide="radio" class="w-4 h-4"></i>
-                    Reader siap menerima sinyal
+                    <span x-text="wsConnected ? 'Reader terhubung dan siap' : 'Menunggu koneksi reader...'"></span>
                 </div>
             </div>
 
@@ -136,6 +137,50 @@
             showManualInput: false,
             manualCardId: '',
             latestEventName: @json($latestEvent?->name ?? 'Tidak ada event'),
+            ws: null,
+            wsConnected: false,
+
+            init() {
+                this.connectWs();
+                this.$nextTick(() => document.getElementById('cardInput')?.focus());
+            },
+
+            connectWs() {
+                try {
+                    // Try to connect to WebSocket server running on the same machine (kiosk)
+                    const wsUrl = 'ws://' + window.location.hostname + ':8765';
+                    this.ws = new WebSocket(wsUrl);
+                    
+                    this.ws.onopen = () => {
+                        this.wsConnected = true;
+                    };
+                    
+                    this.ws.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            if (data.uid && !this.loading) {
+                                this.verifyCard(data.uid.toUpperCase());
+                            }
+                        } catch (e) {
+                            console.error('Error parsing WS data', e);
+                        }
+                    };
+                    
+                    this.ws.onclose = () => {
+                        this.wsConnected = false;
+                        // Auto reconnect after 3 seconds
+                        setTimeout(() => {
+                            if (this.$el) this.connectWs();
+                        }, 3000);
+                    };
+                    
+                    this.ws.onerror = () => {
+                        this.wsConnected = false;
+                    };
+                } catch (e) {
+                    console.error('WebSocket connection failed', e);
+                }
+            },
 
             submitCard() {
                 const cardId = document.getElementById('cardInput').value.trim();
