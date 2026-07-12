@@ -292,7 +292,7 @@
                     console.log('Started polling for RFID scans...');
                     // Poll the cloud API every 1.5 seconds for new scans
                     this.scanInterval = setInterval(() => {
-                        fetch('/api/v1/device/last-scan')
+                        fetch('/api/v1/device/last-scan', { cache: 'no-store' })
                             .then(r => r.json())
                             .then(data => {
                                 if (data.uid) {

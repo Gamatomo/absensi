@@ -148,7 +148,7 @@
                 this.scanInterval = setInterval(() => {
                     if (this.loading) return;
                     
-                    fetch('/api/v1/device/last-scan')
+                    fetch('/api/v1/device/last-scan', { cache: 'no-store' })
                         .then(r => r.json())
                         .then(data => {
                             if (data.uid) {
