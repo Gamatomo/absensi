@@ -166,32 +166,16 @@
                                     <div class="bg-primary/10 p-4 rounded-full border border-primary/20 animate-pulse">
                                         <x-icon name="scan" class="w-8 h-8 text-primary"/>
                                     </div>
-                                    <span class="absolute -top-1 -right-1 flex h-3 w-3" x-show="wsConnected">
+                                    <span class="absolute -top-1 -right-1 flex h-3 w-3" x-show="mode === 'scan'">
                                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                                         <span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
                                     </span>
                                 </div>
                                 
-                                {{-- WS Connection Status --}}
+                                {{-- Cloud Connection Status --}}
                                 <div class="w-full max-w-sm mx-auto">
-                                    <template x-if="wsConnecting">
-                                        <p class="text-sm font-medium text-amber-500">Menghubungkan ke Reader...</p>
-                                    </template>
-                                    <template x-if="wsConnected">
-                                        <div>
-                                            <p class="text-sm font-medium text-primary">Reader Terhubung! Tempelkan kartu...</p>
-                                            <p class="text-xs text-muted-foreground">Otomatis tersimpan setelah kartu terbaca.</p>
-                                        </div>
-                                    </template>
-                                    <template x-if="!wsConnected && !wsConnecting">
-                                        <div>
-                                            <p class="text-sm font-medium text-chart-5 mb-2">Reader Tidak Terhubung</p>
-                                            <div class="flex gap-2 items-center justify-center">
-                                                <input type="text" x-model="wsIp" class="px-3 py-1.5 text-xs rounded-lg border border-border bg-background flex-1 text-center font-mono" placeholder="IP Raspberry (misal: 127.0.0.1)">
-                                                <button type="button" @click="connectWs()" class="px-3 py-1.5 text-xs bg-secondary rounded-lg hover:bg-secondary/80 border border-border">Hubungkan</button>
-                                            </div>
-                                        </div>
-                                    </template>
+                                    <p class="text-sm font-medium text-primary">Menunggu scan kartu dari scanner...</p>
+                                    <p class="text-xs text-muted-foreground mt-1">Otomatis tersimpan setelah kartu terbaca.</p>
                                 </div>
                             </div>
                         </div>
@@ -291,38 +275,25 @@
             return {
                 mode: 'manual',
                 uid: '',
-                ws: null,
-                wsIp: '127.0.0.1',
-                wsConnecting: false,
-                wsConnected: false,
+                scanInterval: null,
                 
                 init() {
                     this.$watch('mode', value => {
                         if (value === 'scan') {
-                            this.connectWs();
+                            this.startScanPolling();
                         } else {
-                            this.disconnectWs();
+                            this.stopScanPolling();
                         }
                     });
                 },
                 
-                connectWs() {
-                    if (this.ws) this.disconnectWs();
-                    
-                    this.wsConnecting = true;
-                    this.wsConnected = false;
-                    
-                    try {
-                        this.ws = new WebSocket(`ws://${this.wsIp}:8765`);
-                        
-                        this.ws.onopen = () => {
-                            this.wsConnecting = false;
-                            this.wsConnected = true;
-                        };
-                        
-                        this.ws.onmessage = (event) => {
-                            try {
-                                const data = JSON.parse(event.data);
+                startScanPolling() {
+                    this.stopScanPolling();
+                    // Poll the cloud API every 1.5 seconds for new scans
+                    this.scanInterval = setInterval(() => {
+                        fetch('/api/v1/device/last-scan')
+                            .then(r => r.json())
+                            .then(data => {
                                 if (data.uid) {
                                     this.uid = data.uid.toUpperCase();
                                     // Auto submit form
@@ -330,33 +301,16 @@
                                         this.$refs.form.submit();
                                     });
                                 }
-                            } catch (e) {
-                                console.error('Error parsing WS message', e);
-                            }
-                        };
-                        
-                        this.ws.onclose = () => {
-                            this.wsConnecting = false;
-                            this.wsConnected = false;
-                        };
-                        
-                        this.ws.onerror = (error) => {
-                            console.error('WebSocket Error', error);
-                            this.wsConnecting = false;
-                            this.wsConnected = false;
-                        };
-                    } catch (e) {
-                        this.wsConnecting = false;
-                        this.wsConnected = false;
-                    }
+                            })
+                            .catch(e => console.error('Cloud scan check failed:', e));
+                    }, 1500);
                 },
                 
-                disconnectWs() {
-                    if (this.ws) {
-                        this.ws.close();
-                        this.ws = null;
+                stopScanPolling() {
+                    if (this.scanInterval) {
+                        clearInterval(this.scanInterval);
+                        this.scanInterval = null;
                     }
-                    this.wsConnected = false;
                 },
 
                 onSubmit(e) {

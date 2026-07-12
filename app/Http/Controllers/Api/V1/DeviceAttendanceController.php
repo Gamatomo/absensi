@@ -9,9 +9,33 @@ use App\Models\AttendanceRecord;
 use App\Models\Device;
 use App\Models\RfidCard;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DeviceAttendanceController extends Controller
 {
+    public function storeScan(Request $request): JsonResponse
+    {
+        $request->validate(['uid' => 'required|string']);
+        
+        // Store in cache for 30 seconds
+        Cache::put('device_last_scan', strtoupper($request->input('uid')), 30);
+        
+        return response()->json(['message' => 'Scan stored successfully']);
+    }
+
+    public function getLastScan(): JsonResponse
+    {
+        $uid = Cache::get('device_last_scan');
+        
+        if ($uid) {
+            // Clear it so it's not read twice
+            Cache::forget('device_last_scan');
+            return response()->json(['uid' => $uid]);
+        }
+        
+        return response()->json(['uid' => null]);
+    }
     public function store(StoreAttendanceEventRequest $request): JsonResponse
     {
         $existing = AttendanceEvent::query()->where('idempotency_key', $request->string('idempotency_key'))->first();

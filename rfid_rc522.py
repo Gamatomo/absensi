@@ -7,40 +7,33 @@ Broadcasts the UID over a WebSocket (for the Admin Scan Mode and Check-in Kiosk)
 
 Prerequisites:
   sudo apt install python3-spidev python3-websockets
+Prerequisites:
+  sudo apt install python3-spidev python3-requests
   or
-  pip3 install spidev websockets
+  pip3 install spidev requests
 
 Usage:
   python3 rfid_rc522.py
 """
 
-import asyncio
-import websockets
 import spidev
-import json
 import datetime
-import threading
 import time
+import requests
+import os
 
-clients = set()
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://your-vps-domain.com")
 
-async def register(websocket):
-    """Register a new WebSocket client."""
-    clients.add(websocket)
+def send_to_api(uid):
+    url = f"{API_BASE_URL}/api/v1/device/scan"
     try:
-        await websocket.wait_closed()
-    finally:
-        clients.remove(websocket)
-
-async def broadcast(message):
-    """Broadcast a message to all connected WebSocket clients."""
-    if not clients:
-        return
-    for client in list(clients):
-        try:
-            await client.send(message)
-        except websockets.exceptions.ConnectionClosed:
-            pass
+        response = requests.post(url, json={"uid": uid}, timeout=3)
+        if response.status_code == 200:
+            print("  ✅ Sent to VPS")
+        else:
+            print(f"  ❌ VPS Error: {response.status_code}")
+    except Exception as e:
+        print(f"  ❌ Failed to send to VPS: {e}")
 
 # ─── RC522 Constants & Helpers ───
 PCD_IDLE       = 0x00
@@ -104,7 +97,7 @@ def card_command(spi, cmd, data):
         result.append(read_reg(0x09))
     return n, result
 
-def read_rc522_loop(loop):
+def read_rc522_loop():
     try:
         spi = spidev.SpiDev()
         spi.open(0, 0)
@@ -162,33 +155,24 @@ def read_rc522_loop(loop):
                     timestamp = datetime.datetime.now().strftime("%H:%M:%S")
                     print(f"\n[{timestamp}] 🔖 Card detected: {hex_uid}")
 
-                    asyncio.run_coroutine_threadsafe(
-                        broadcast(json.dumps({"uid": hex_uid})), loop
-                    )
+                    send_to_api(hex_uid)
+                    
             time.sleep(0.1)
         except Exception as e:
             print(f"[ERROR] RC522 read error: {e}")
             time.sleep(1)
 
-async def main():
+def main():
     print("=" * 50)
-    print("  RC522 RFID WebSocket Service (Pi 5)")
+    print("  RC522 RFID Cloud Scanner (Pi 5)")
+    print(f"  Target VPS: {API_BASE_URL}")
     print("=" * 50)
+    print("[INFO] Press Ctrl+C to stop")
 
-    # Start the SPI reader in a separate background thread
-    loop = asyncio.get_running_loop()
-    thread = threading.Thread(target=read_rc522_loop, args=(loop,), daemon=True)
-    thread.start()
-
-    # Start the WebSocket server
-    ws_port = 8765
-    async with websockets.serve(register, "0.0.0.0", ws_port):
-        print(f"[INFO] WebSocket Server listening on ws://0.0.0.0:{ws_port}")
-        print("[INFO] Press Ctrl+C to stop")
-        await asyncio.Future()
+    read_rc522_loop()
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        main()
     except KeyboardInterrupt:
         print("\n[INFO] Service stopped.")

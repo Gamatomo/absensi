@@ -7,49 +7,39 @@ Reads 125kHz RFID cards via RDM6300 (UART Serial) on Raspberry Pi.
 2. Broadcasts the UID over a WebSocket (for the Admin Scan Mode).
 
 Prerequisites:
-  sudo apt install python3-serial python3-websockets python3-requests
+  sudo apt install python3-serial python3-requests
   or
-  pip3 install pyserial websockets requests
+  pip3 install pyserial requests
 
 Usage:
   python3 rfid_rdm6300.py
 """
 
-import asyncio
-import websockets
 import serial
-import json
 import datetime
 import os
-import threading
 import time
+import requests
+
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://your-vps-domain.com")
+
+def send_to_api(uid):
+    url = f"{API_BASE_URL}/api/v1/device/scan"
+    try:
+        response = requests.post(url, json={"uid": uid}, timeout=3)
+        if response.status_code == 200:
+            print("  ✅ Sent to VPS")
+        else:
+            print(f"  ❌ VPS Error: {response.status_code}")
+    except Exception as e:
+        print(f"  ❌ Failed to send to VPS: {e}")
 
 # ─── Configuration ───────────────────────────────────────────
 SERIAL_PORT = os.environ.get("SERIAL_PORT", "/dev/serial0")
 COOLDOWN_SECONDS = 3
 # ─────────────────────────────────────────────────────────────
 
-clients = set()
-
-async def register(websocket):
-    """Register a new WebSocket client."""
-    clients.add(websocket)
-    try:
-        await websocket.wait_closed()
-    finally:
-        clients.remove(websocket)
-
-async def broadcast(message):
-    """Broadcast a message to all connected WebSocket clients."""
-    if not clients:
-        return
-    for client in list(clients):
-        try:
-            await client.send(message)
-        except websockets.exceptions.ConnectionClosed:
-            pass
-
-def read_serial_loop(loop):
+def read_serial_loop():
     """Continuously read from the RDM6300 via UART."""
     try:
         ser = serial.Serial(SERIAL_PORT, 9600, timeout=1)
@@ -81,34 +71,24 @@ def read_serial_loop(loop):
                 timestamp = datetime.datetime.now().strftime("%H:%M:%S")
                 print(f"\n[{timestamp}] 🔖 Card detected: {card_id}")
 
-                # Broadcast to any open web browser
-                asyncio.run_coroutine_threadsafe(
-                    broadcast(json.dumps({"uid": card_id})), loop
-                )
+                # Send to VPS
+                send_to_api(card_id)
 
         except Exception as e:
             print(f"[ERROR] Serial read error: {e}")
             time.sleep(1)
 
-async def main():
+def main():
     print("=" * 50)
-    print("  RDM6300 RFID WebSocket Service")
+    print("  RDM6300 RFID Cloud Scanner")
+    print(f"  Target VPS: {API_BASE_URL}")
     print("=" * 50)
+    print("[INFO] Press Ctrl+C to stop")
 
-    # Start the serial reader in a separate background thread
-    loop = asyncio.get_running_loop()
-    thread = threading.Thread(target=read_serial_loop, args=(loop,), daemon=True)
-    thread.start()
-
-    # Start the WebSocket server
-    ws_port = 8765
-    async with websockets.serve(register, "0.0.0.0", ws_port):
-        print(f"[INFO] WebSocket Server listening on ws://0.0.0.0:{ws_port}")
-        print("[INFO] Press Ctrl+C to stop")
-        await asyncio.Future()  # run forever
+    read_serial_loop()
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        main()
     except KeyboardInterrupt:
         print("\n[INFO] Service stopped.")

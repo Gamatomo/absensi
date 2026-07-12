@@ -34,10 +34,9 @@
                 </div>
                 <p class="text-lg font-medium font-display">Menunggu Kartu...</p>
                 <p class="text-sm text-muted-foreground mt-2">Dekatkan kartu RFID ke reader</p>
-                <div class="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-full border text-sm"
-                     :class="wsConnected ? 'bg-primary/5 border-primary/15 text-primary' : 'bg-chart-5/5 border-chart-5/15 text-chart-5'">
+                <div class="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-full border text-sm bg-primary/5 border-primary/15 text-primary">
                     <i data-lucide="radio" class="w-4 h-4"></i>
-                    <span x-text="wsConnected ? 'Reader terhubung dan siap' : 'Menunggu koneksi reader...'"></span>
+                    <span>Reader siap menerima sinyal (Cloud Mode)</span>
                 </div>
             </div>
 
@@ -137,49 +136,27 @@
             showManualInput: false,
             manualCardId: '',
             latestEventName: @json($latestEvent?->name ?? 'Tidak ada event'),
-            ws: null,
-            wsConnected: false,
+            scanInterval: null,
 
             init() {
-                this.connectWs();
+                this.startScanPolling();
                 this.$nextTick(() => document.getElementById('cardInput')?.focus());
             },
 
-            connectWs() {
-                try {
-                    // Always connect to localhost (since the scanner is plugged into the kiosk running this browser)
-                    const wsUrl = 'ws://127.0.0.1:8765';
-                    this.ws = new WebSocket(wsUrl);
+            startScanPolling() {
+                // Poll the cloud API every 1.5 seconds for new scans
+                this.scanInterval = setInterval(() => {
+                    if (this.loading) return;
                     
-                    this.ws.onopen = () => {
-                        this.wsConnected = true;
-                    };
-                    
-                    this.ws.onmessage = (event) => {
-                        try {
-                            const data = JSON.parse(event.data);
-                            if (data.uid && !this.loading) {
-                                this.verifyCard(data.uid.toUpperCase());
+                    fetch('/api/v1/device/last-scan')
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.uid) {
+                                this.verifyCard(data.uid);
                             }
-                        } catch (e) {
-                            console.error('Error parsing WS data', e);
-                        }
-                    };
-                    
-                    this.ws.onclose = () => {
-                        this.wsConnected = false;
-                        // Auto reconnect after 3 seconds
-                        setTimeout(() => {
-                            if (this.$el) this.connectWs();
-                        }, 3000);
-                    };
-                    
-                    this.ws.onerror = () => {
-                        this.wsConnected = false;
-                    };
-                } catch (e) {
-                    console.error('WebSocket connection failed', e);
-                }
+                        })
+                        .catch(e => console.error('Cloud scan check failed:', e));
+                }, 1500);
             },
 
             submitCard() {
