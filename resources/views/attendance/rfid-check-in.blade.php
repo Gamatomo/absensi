@@ -147,8 +147,8 @@
 
             connectWs() {
                 try {
-                    // Try to connect to WebSocket server running on the same machine (kiosk)
-                    const wsUrl = 'ws://' + window.location.hostname + ':8765';
+                    // Always connect to localhost (since the scanner is plugged into the kiosk running this browser)
+                    const wsUrl = 'ws://127.0.0.1:8765';
                     this.ws = new WebSocket(wsUrl);
                     
                     this.ws.onopen = () => {
