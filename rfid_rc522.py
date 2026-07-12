@@ -22,7 +22,7 @@ import time
 import requests
 import os
 
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://your-vps-domain.com")
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://absensi-smkn3-tenggarong.my.id")
 
 def send_to_api(uid):
     url = f"{API_BASE_URL}/api/v1/device/scan"
