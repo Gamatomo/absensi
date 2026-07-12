@@ -289,17 +289,26 @@
                 
                 startScanPolling() {
                     this.stopScanPolling();
+                    console.log('Started polling for RFID scans...');
                     // Poll the cloud API every 1.5 seconds for new scans
                     this.scanInterval = setInterval(() => {
                         fetch('/api/v1/device/last-scan')
                             .then(r => r.json())
                             .then(data => {
                                 if (data.uid) {
+                                    console.log('Received UID:', data.uid);
                                     this.uid = data.uid.toUpperCase();
-                                    // Auto submit form
-                                    this.$nextTick(() => {
-                                        this.$refs.form.submit();
-                                    });
+                                    this.stopScanPolling(); // Stop polling while we submit
+                                    
+                                    // Give a 1-second delay so the user can see the ID before the page reloads
+                                    setTimeout(() => {
+                                        const submitBtn = this.$refs.form.querySelector('button[type="submit"]');
+                                        if (submitBtn) {
+                                            submitBtn.click();
+                                        } else {
+                                            this.$refs.form.submit();
+                                        }
+                                    }, 1000);
                                 }
                             })
                             .catch(e => console.error('Cloud scan check failed:', e));
