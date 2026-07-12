@@ -34,29 +34,31 @@ class UserManagementController extends Controller
 
         $uid = strtoupper(trim($request->input('uid')));
 
-        // Check if this UID is already assigned to someone else
+        // Check if this UID is already assigned to someone else AND active
         $existingCard = RfidCard::where('uid', $uid)->where('status', 'active')->first();
         if ($existingCard && $existingCard->user_id !== $user->id) {
             return back()->with('error', "Kartu RFID '{$uid}' sudah digunakan oleh {$existingCard->user->name}.");
         }
 
-        // Check if user already has an active card
-        $currentCard = RfidCard::where('user_id', $user->id)->where('status', 'active')->first();
-        if ($currentCard) {
-            // Revoke old card first
-            $currentCard->update([
+        // Revoke user's current active card if it's a different card
+        RfidCard::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where('uid', '!=', $uid)
+            ->update([
                 'status' => 'revoked',
                 'revoked_at' => now(),
             ]);
-        }
 
-        // Create new RFID card
-        RfidCard::create([
-            'user_id' => $user->id,
-            'uid' => $uid,
-            'status' => 'active',
-            'assigned_at' => now(),
-        ]);
+        // Update existing card record or create a new one to respect the unique constraint
+        RfidCard::updateOrCreate(
+            ['uid' => $uid],
+            [
+                'user_id' => $user->id,
+                'status' => 'active',
+                'assigned_at' => now(),
+                'revoked_at' => null,
+            ]
+        );
 
         return back()->with('success', "Kartu RFID '{$uid}' berhasil didaftarkan untuk {$user->name}.");
     }
