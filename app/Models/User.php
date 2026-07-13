@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPassword as ResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,11 +31,43 @@ class User extends Authenticatable
         ];
     }
 
-    public function student(): HasOne { return $this->hasOne(Student::class); }
-    public function teacher(): HasOne { return $this->hasOne(Teacher::class); }
-    public function parentGuardian(): HasOne { return $this->hasOne(ParentGuardian::class); }
-    public function attendanceEvents(): HasMany { return $this->hasMany(AttendanceEvent::class); }
-    public function attendanceRecords(): HasMany { return $this->hasMany(AttendanceRecord::class); }
-    public function rfidCards(): HasMany { return $this->hasMany(RfidCard::class); }
-    public function faceProfiles(): HasMany { return $this->hasMany(FaceProfile::class); }
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    public function teacher(): HasOne
+    {
+        return $this->hasOne(Teacher::class);
+    }
+
+    public function parentGuardian(): HasOne
+    {
+        return $this->hasOne(ParentGuardian::class);
+    }
+
+    public function attendanceEvents(): HasMany
+    {
+        return $this->hasMany(AttendanceEvent::class);
+    }
+
+    public function attendanceRecords(): HasMany
+    {
+        return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function rfidCards(): HasMany
+    {
+        return $this->hasMany(RfidCard::class);
+    }
+
+    public function faceProfiles(): HasMany
+    {
+        return $this->hasMany(FaceProfile::class);
+    }
 }

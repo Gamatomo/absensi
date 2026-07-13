@@ -53,7 +53,7 @@ class LoginRequest extends FormRequest
         if (! Auth::user()->is_active) {
             Auth::logout();
             throw ValidationException::withMessages([
-                'email' => 'Your account needs to be verified by an admin.',
+                'email' => trans('auth.inactive'),
             ]);
         }
 
