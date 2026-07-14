@@ -87,12 +87,12 @@
         </main>
         @endisset
 
-        <footer class="border-t border-border/80 bg-card/60 backdrop-blur-sm py-4">
+        {{-- <footer class="border-t border-border/80 bg-card/60 backdrop-blur-sm py-4">
             <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
                 <p>Butuh bantuan? Hubungi Admin Portal Presensi</p>
                 <p class="font-medium text-foreground/80">Kiosk Mode · {{ config('app.name', 'Attendance') }}</p>
             </div>
-        </footer>
+        </footer> --}}
     </div>
 
     <script>
