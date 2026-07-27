@@ -253,16 +253,42 @@ class UserManagementController extends Controller
 
         $rejectedCount = User::whereIn('id', $validated['user_ids'])
             ->where('is_active', false)
-            ->update(['is_active' => false]); // Actually we might want to delete them or just keep them inactive. The current reject just does `update(['is_active' => false])`
-
-        // Wait, the `reject` method does `$user->update(['is_active' => false]);`. 
-        // If they are already inactive, this is a no-op but it signifies rejection in the UI. 
-        // If we want to actually reject, we might delete them? The user's code just updates is_active=false. 
-        // Let's just do the same.
+            ->update(['is_active' => false]);
 
         return response()->json([
             'success' => true,
             'message' => count($validated['user_ids']) . " pengguna berhasil ditolak",
         ]);
+    }
+
+    public function destroy(Request $request, User $user): JsonResponse
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin untuk menghapus pengguna',
+            ], 403);
+        }
+
+        if ($user->role === 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun admin tidak dapat dihapus',
+            ], 422);
+        }
+
+        try {
+            $user->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengguna berhasil dihapus secara permanen',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus pengguna: '.$e->getMessage(),
+            ], 500);
+        }
     }
 }

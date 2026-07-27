@@ -84,6 +84,9 @@
                     <a href="{{ route('admin.users.edit', $student['userId']) }}" class="p-2 text-muted-foreground hover:text-primary transition-colors" title="Edit Data & Kelola RFID">
                         <x-icon name="pencil" class="w-5 h-5" />
                     </a>
+                    <button type="button" @click="deleteUser('{{ $student['userId'] }}', '{{ addslashes($student['name']) }}')" class="p-2 text-muted-foreground hover:text-chart-5 transition-colors" title="Hapus Siswa">
+                        <x-icon name="trash-2" class="w-5 h-5" />
+                    </button>
                     <div class="p-2 bg-primary/10 rounded-lg"><x-icon name="users" class="w-5 h-5 text-primary" /></div>
                 </div>
             </div>
@@ -157,6 +160,31 @@ function studentAdminData() {
             .catch(e => {
                 this.uploadMessage = 'Terjadi kesalahan: ' + e.message;
                 this.uploadStatus = 'error';
+            });
+        },
+
+        deleteUser(userId, userName) {
+            if (!confirm(`Yakin ingin menghapus data siswa "${userName}"?\n\nSemua data terkait (kehadiran, profil wajah, kartu RFID) akan ikut terhapus secara permanen.`)) return;
+
+            fetch(`/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert('Gagal: ' + data.message);
+                }
+            })
+            .catch(err => {
+                alert('Terjadi kesalahan: ' + err.message);
             });
         }
     };
