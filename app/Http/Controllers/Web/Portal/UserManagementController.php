@@ -36,10 +36,11 @@ class UserManagementController extends Controller
         }
 
         $validated = $request->validate([
-            'department' => 'nullable|string|max:255',
+            'department_id' => 'nullable|integer|exists:departments,id',
             'nisn' => 'nullable|string|max:255',
             'subject' => 'nullable|string|max:255',
             'student_id' => 'nullable|integer|exists:students,id',
+            'class_id' => 'nullable|integer|exists:school_classes,id',
             'relationship' => 'nullable|string|max:255',
             'occupation' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:255',
@@ -63,16 +64,27 @@ class UserManagementController extends Controller
                 ], fn ($value) => $value !== null));
             }
 
+            if ($user->role === 'student' && !empty($validated['class_id'])) {
+                $schoolClass = \App\Models\SchoolClass::find($validated['class_id']);
+                if ($schoolClass) {
+                    $validated['department_id'] = $schoolClass->department_id;
+                }
+            }
+
             match ($user->role) {
-                'student' => Student::updateOrCreate(
+                'student' => tap(Student::updateOrCreate(
                     ['user_id' => $user->id],
                     [
                         'student_number' => 'STU'.str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
                         'nisn' => $validated['nisn'] ?? null,
-                        'department' => $validated['department'] ?? null,
+                        'department_id' => $validated['department_id'] ?? null,
                         'enrolled_date' => now(),
                     ]
-                ),
+                ), function($student) use ($validated) {
+                    if (!empty($validated['class_id'])) {
+                        $student->classes()->sync([$validated['class_id']]);
+                    }
+                }),
                 'teacher' => Teacher::updateOrCreate(
                     ['user_id' => $user->id],
                     [
@@ -177,5 +189,80 @@ class UserManagementController extends Controller
                 'message' => 'Gagal menonaktifkan pengguna: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    public function bulkApprove(Request $request): JsonResponse
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'user_ids' => 'required|array',
+            'user_ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $users = User::whereIn('id', $validated['user_ids'])
+            ->where('is_active', false)
+            ->whereIn('role', ['student', 'teacher'])
+            ->get();
+
+        $approvedCount = 0;
+
+        foreach ($users as $user) {
+            try {
+                match ($user->role) {
+                    'student' => Student::updateOrCreate(
+                        ['user_id' => $user->id],
+                        [
+                            'student_number' => 'STU'.str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
+                            'enrolled_date' => now(),
+                        ]
+                    ),
+                    'teacher' => Teacher::updateOrCreate(
+                        ['user_id' => $user->id],
+                        [
+                            'teacher_number' => 'TCH'.str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
+                            'enrolled_date' => now(),
+                        ]
+                    ),
+                };
+                $user->update(['is_active' => true]);
+                $approvedCount++;
+            } catch (\Exception $e) {
+                // skip failed users
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "$approvedCount pengguna berhasil diverifikasi",
+        ]);
+    }
+
+    public function bulkReject(Request $request): JsonResponse
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'user_ids' => 'required|array',
+            'user_ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $rejectedCount = User::whereIn('id', $validated['user_ids'])
+            ->where('is_active', false)
+            ->update(['is_active' => false]); // Actually we might want to delete them or just keep them inactive. The current reject just does `update(['is_active' => false])`
+
+        // Wait, the `reject` method does `$user->update(['is_active' => false]);`. 
+        // If they are already inactive, this is a no-op but it signifies rejection in the UI. 
+        // If we want to actually reject, we might delete them? The user's code just updates is_active=false. 
+        // Let's just do the same.
+
+        return response()->json([
+            'success' => true,
+            'message' => count($validated['user_ids']) . " pengguna berhasil ditolak",
+        ]);
     }
 }

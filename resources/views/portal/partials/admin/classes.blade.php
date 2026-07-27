@@ -34,7 +34,12 @@
                 </div>
                 <div>
                     <label class="text-sm text-muted-foreground">Jurusan</label>
-                    <input name="department" placeholder="Contoh: Teknik Informatika" required class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background">
+                    <select name="department_id" required class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background">
+                        <option value="">Pilih Jurusan</option>
+                        @foreach($departments as $dept)
+                        <option value="{{ $dept['id'] }}">{{ $dept['name'] }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <label class="text-sm text-muted-foreground">Ruang</label>

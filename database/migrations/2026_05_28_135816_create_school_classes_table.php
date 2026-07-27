@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->string('level')->nullable();
-            $table->string('department')->nullable();
+            $table->foreignId('department_id')->nullable()->constrained('departments')->nullOnDelete();
             $table->foreignId('homeroom_teacher_id')->nullable()->constrained('teachers')->nullOnDelete();
             $table->string('academic_year')->nullable();
             $table->string('room')->nullable();

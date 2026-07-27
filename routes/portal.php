@@ -14,6 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::patch('/leave-requests/{id}/reject', [LeaveRequestController::class, 'reject'])->name('leave-requests.reject');
 
     // Import Routes
+    Route::get('/students/search', [\App\Http\Controllers\Web\Portal\StudentSearchController::class, 'search'])->name('students.search');
     Route::post('/students/import', [StudentImportController::class, 'store'])->name('students.import');
     Route::post('/teachers/import', [TeacherImportController::class, 'store'])->name('teachers.import');
 
@@ -23,6 +24,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::delete('/classes/{class}/students/{student}', [ClassController::class, 'removeStudent'])->name('classes.remove-student');
 
     // User Management Routes
+    Route::post('/users/bulk-approve', [UserManagementController::class, 'bulkApprove'])->name('users.bulk-approve');
+    Route::post('/users/bulk-reject', [UserManagementController::class, 'bulkReject'])->name('users.bulk-reject');
     Route::patch('/users/{user}/approve', [UserManagementController::class, 'approve'])->name('users.approve');
     Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
 

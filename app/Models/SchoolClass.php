@@ -11,7 +11,7 @@ class SchoolClass extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'level', 'department', 'homeroom_teacher_id', 'academic_year', 'room'];
+    protected $fillable = ['name', 'level', 'department_id', 'homeroom_teacher_id', 'academic_year', 'room'];
 
     public function homeroomTeacher(): BelongsTo
     {
@@ -21,5 +21,10 @@ class SchoolClass extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(Student::class, 'class_student')->withTimestamps();
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 }

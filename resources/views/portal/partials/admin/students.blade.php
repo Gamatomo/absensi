@@ -1,5 +1,5 @@
 @php
-    $departments = collect($students)->pluck('department')->unique()->filter()->values();
+    $departments = collect($students)->pluck('department_name')->unique()->filter()->values();
 @endphp
 
 <div class="space-y-6" x-data="studentAdminData()">
@@ -66,7 +66,7 @@
         @foreach($students as $student)
         <div
             class="bg-card border border-border hover:border-primary/50 rounded-lg p-6 shadow-sm hover:shadow-md transition-all"
-            x-show="(!searchTerm || '{{ strtolower($student['name'].' '.$student['email'].' '.$student['id']) }}'.includes(searchTerm.toLowerCase())) && (filterDepartment === 'all' || filterDepartment === '{{ $student['department'] }}')"
+            x-show="(!searchTerm || '{{ strtolower($student['name'].' '.$student['email'].' '.$student['id']) }}'.includes(searchTerm.toLowerCase())) && (filterDepartment === 'all' || filterDepartment === '{{ $student['department_name'] }}')"
         >
             <div class="flex items-start justify-between mb-4">
                 <div class="flex-1">
@@ -89,7 +89,7 @@
             </div>
             <div class="space-y-3 text-sm">
                 <div class="flex items-center gap-3"><x-icon name="mail" class="w-4 h-4 text-muted-foreground" /><span class="text-muted-foreground">{{ $student['email'] }}</span></div>
-                <div class="flex items-center gap-3"><x-icon name="building-2" class="w-4 h-4 text-muted-foreground" /><span>{{ $student['department'] }}</span></div>
+                <div class="flex items-center gap-3"><x-icon name="building-2" class="w-4 h-4 text-muted-foreground" /><span>{{ $student['department_name'] }}</span></div>
                 @if(!empty($student['className']))
                 <div class="flex items-center gap-3"><x-icon name="book-open" class="w-4 h-4 text-muted-foreground" /><span class="font-medium text-primary">Kelas: {{ $student['className'] }}</span></div>
                 @endif

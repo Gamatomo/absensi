@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Data\PortalDemoData;
 use App\Models\AttendanceEvent;
+use App\Models\Department;
 use App\Models\LeaveRequest;
 use App\Models\ParentGuardian;
 use App\Models\Schedule;
@@ -28,6 +29,7 @@ class PortalDataService
         $parents = $this->parents();
         $schedules = $this->schedules();
         $pendingUsers = $this->pendingUsers();
+        $departments = Department::all()->toArray();
 
         // Resolve currentStudent/Teacher/Parent from the logged-in user
         $currentStudent = $authUser
@@ -49,6 +51,7 @@ class PortalDataService
             'parents' => $parents,
             'schedules' => $schedules,
             'pendingUsers' => $pendingUsers,
+            'departments' => $departments,
             'weeklyChart' => $this->weeklyChart($attendanceRecords),
             'stats' => $this->stats($students, $teachers, $attendanceRecords, $leaveRequests, count($pendingUsers)),
             'currentStudent' => $currentStudent,
@@ -76,7 +79,8 @@ class PortalDataService
                 'email' => $student->user?->email,
                 'cardId' => $activeCard?->uid,
                 'faceId' => $activeFace?->profile_key,
-                'department' => $student->department,
+                'department_id' => $student->department_id,
+                'department_name' => $student->department?->name,
                 'enrolledDate' => $student->enrolled_date?->format('Y-m-d'),
                 'nisn' => $student->nisn,
                 'phone' => $student->user?->phone,
@@ -171,7 +175,8 @@ class PortalDataService
                 'id' => (string) $class->id,
                 'name' => $class->name,
                 'level' => $class->level,
-                'department' => $class->department,
+                'department_id' => $class->department_id,
+                'department' => $class->department?->name,
                 'homeroomTeacherId' => $class->homeroomTeacher?->teacher_number,
                 'homeroomTeacherName' => $class->homeroomTeacher?->user?->name,
                 'studentCount' => $class->students->count(),

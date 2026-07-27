@@ -5,7 +5,7 @@
     <div class="p-6 border-b border-border">
         <div class="flex items-center gap-3">
             <div class="p-2.5 bg-emerald-500/10 rounded-lg"><x-icon name="clock" class="w-5 h-5 text-emerald-600"/></div>
-            <div><h2 class="font-display">Jadwal Pelajaran</h2><p class="text-sm text-muted-foreground">Kelas {{ $student['department'] ?? '' }}</p></div>
+            <div><h2 class="font-display">Jadwal Pelajaran</h2><p class="text-sm text-muted-foreground">Kelas {{ $student['department_name'] ?? '' }}</p></div>
         </div>
     </div>
     <div class="p-6">

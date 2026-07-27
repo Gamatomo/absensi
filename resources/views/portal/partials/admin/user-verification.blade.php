@@ -4,7 +4,6 @@
         'teacher' => 'Guru',
         'parent' => 'Orang Tua',
     ];
-    $studentsForSelect = collect($students)->filter(fn ($s) => !empty($s['dbId']))->values();
 @endphp
 <div class="space-y-6" x-data="userVerificationAdminData()">
     <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
@@ -17,9 +16,19 @@
                 </div>
             </div>
             @if(count($pendingUsers) > 0)
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-chart-4/10 text-chart-4 border border-chart-4/30">
-                {{ count($pendingUsers) }} pending
-            </span>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-chart-4/10 text-chart-4 border border-chart-4/30">
+                    {{ count($pendingUsers) }} pending
+                </span>
+                <div class="flex items-center gap-2" x-show="selectedUsers.length > 0" x-transition>
+                    <button type="button" @click="bulkApprove()" class="px-3 py-1.5 bg-chart-3/10 text-chart-3 rounded-lg text-sm border border-chart-3/30 hover:bg-chart-3/20 transition-colors">
+                        Setujui Terpilih (<span x-text="selectedUsers.length"></span>)
+                    </button>
+                    <button type="button" @click="bulkReject()" class="px-3 py-1.5 bg-chart-5/10 text-chart-5 rounded-lg text-sm border border-chart-5/30 hover:bg-chart-5/20 transition-colors">
+                        Tolak Terpilih
+                    </button>
+                </div>
+            </div>
             @endif
         </div>
         <div class="flex flex-col sm:flex-row gap-4">
@@ -33,6 +42,16 @@
                 <option value="teacher">Guru</option>
                 <option value="parent">Orang Tua</option>
             </select>
+        </div>
+        <div class="flex items-center mt-4 pt-4 border-t border-border">
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" class="rounded border-border text-primary focus:ring-primary"
+                       x-model="selectAll" @change="toggleSelectAll">
+                <span class="text-sm font-medium">Pilih Semua</span>
+            </label>
+            <span class="text-sm text-muted-foreground ml-4 hidden sm:inline">
+                (Orang Tua harus diverifikasi secara manual)
+            </span>
         </div>
     </div>
 
@@ -49,7 +68,15 @@
         <div class="bg-card border border-border rounded-lg p-6 shadow-sm"
              x-show="(filterRole==='all'||filterRole==='{{ $pendingUser['role'] }}') && (!searchQuery || '{{ strtolower($pendingUser['name'].' '.$pendingUser['email']) }}'.includes(searchQuery.toLowerCase()))">
             <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                <div class="flex-1">
+                <div class="flex items-start gap-4 flex-1">
+                    <div class="pt-1">
+                        @if($pendingUser['role'] === 'parent')
+                            <input type="checkbox" disabled class="rounded border-border opacity-50 cursor-not-allowed" title="Orang Tua harus diverifikasi secara manual">
+                        @else
+                            <input type="checkbox" value="{{ $pendingUser['id'] }}" x-model="selectedUsers" class="rounded border-border text-primary focus:ring-primary cursor-pointer">
+                        @endif
+                    </div>
+                    <div class="flex-1">
                     <div class="flex items-center gap-2 mb-2">
                         <h3 class="font-display">{{ $pendingUser['name'] }}</h3>
                         <span class="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">{{ $roleLabels[$pendingUser['role']] ?? $pendingUser['role'] }}</span>
@@ -61,6 +88,7 @@
                     <p class="text-sm mt-2 {{ $pendingUser['hasProfile'] ? 'text-chart-3' : 'text-chart-4' }}">
                         {{ $pendingUser['hasProfile'] ? 'Profil terhubung ke data' : 'Belum terhubung ke data' }}
                     </p>
+                </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button"
@@ -93,8 +121,23 @@
                 <template x-if="modalUserRole === 'student'">
                     <div class="space-y-3">
                         <div>
+                            <label class="text-sm text-muted-foreground">Kelas (opsional)</label>
+                            <select x-model="form.class_id" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background">
+                                <option value="">Pilih Kelas</option>
+                                @foreach($classes as $c)
+                                <option value="{{ $c['id'] }}" data-department="{{ $c['department_id'] }}">{{ $c['name'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
                             <label class="text-sm text-muted-foreground">Jurusan (opsional)</label>
-                            <input x-model="form.department" type="text" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background" placeholder="Contoh: Teknik Informatika">
+                            <select x-model="form.department_id" :disabled="!!form.class_id" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background disabled:opacity-50 disabled:bg-secondary">
+                                <option value="">Pilih Jurusan</option>
+                                @foreach($departments as $dept)
+                                <option value="{{ $dept['id'] }}">{{ $dept['name'] }}</option>
+                                @endforeach
+                            </select>
+                            <p x-show="form.class_id" class="text-xs text-muted-foreground mt-1">Jurusan otomatis mengikuti kelas.</p>
                         </div>
                         <div>
                             <label class="text-sm text-muted-foreground">NISN (opsional)</label>
@@ -112,14 +155,26 @@
 
                 <template x-if="modalUserRole === 'parent'">
                     <div class="space-y-3">
-                        <div>
+                        <div x-data="studentSearchComponent()">
                             <label class="text-sm text-muted-foreground">Siswa <span class="text-chart-5">*</span></label>
-                            <select x-model="form.student_id" class="w-full mt-1 px-3 py-2 border border-border rounded-lg bg-background" required>
-                                <option value="">Pilih siswa</option>
-                                @foreach($studentsForSelect as $student)
-                                <option value="{{ $student['dbId'] }}">{{ $student['name'] }} ({{ $student['id'] }})</option>
-                                @endforeach
-                            </select>
+                            <div class="flex gap-2 mt-1">
+                                <select x-model="searchDepartmentId" class="w-1/3 px-3 py-2 border border-border rounded-lg bg-background text-sm">
+                                    <option value="">Semua Jurusan</option>
+                                    @foreach($departments as $dept)
+                                    <option value="{{ $dept['id'] }}">{{ $dept['name'] }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="text" x-model="searchQuery" @input.debounce.500ms="searchStudents()" class="w-2/3 px-3 py-2 border border-border rounded-lg bg-background text-sm" placeholder="Cari nama atau NISN...">
+                            </div>
+                            <div class="relative mt-2">
+                                <select x-model="form.student_id" class="w-full px-3 py-2 border border-border rounded-lg bg-background" required>
+                                    <option value="">Pilih siswa</option>
+                                    <template x-for="student in searchResults" :key="student.id">
+                                        <option :value="student.id" x-text="student.name + ' (' + student.student_number + ')'"></option>
+                                    </template>
+                                </select>
+                                <div x-show="isSearching" class="absolute right-8 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">Mencari...</div>
+                            </div>
                         </div>
                         <div>
                             <label class="text-sm text-muted-foreground">Hubungan <span class="text-chart-5">*</span></label>
@@ -159,8 +214,11 @@ function userVerificationAdminData() {
         modalUserId: null,
         modalUserRole: null,
         modalUserName: '',
+        selectedUsers: [],
+        selectAll: false,
         form: {
-            department: '',
+            class_id: '',
+            department_id: '',
             nisn: '',
             subject: '',
             student_id: '',
@@ -170,7 +228,8 @@ function userVerificationAdminData() {
 
         resetForm() {
             this.form = {
-                department: '',
+                class_id: '',
+                department_id: '',
                 nisn: '',
                 subject: '',
                 student_id: '',
@@ -204,7 +263,8 @@ function userVerificationAdminData() {
 
             this.processing = true;
             const body = {};
-            if (this.form.department) body.department = this.form.department;
+            if (this.form.class_id) body.class_id = parseInt(this.form.class_id, 10);
+            if (this.form.department_id) body.department_id = parseInt(this.form.department_id, 10);
             if (this.form.nisn) body.nisn = this.form.nisn;
             if (this.form.subject) body.subject = this.form.subject;
             if (this.form.student_id) body.student_id = parseInt(this.form.student_id, 10);
@@ -262,7 +322,127 @@ function userVerificationAdminData() {
                 alert('Error: ' + e.message);
                 this.processing = false;
             });
+        },
+
+        toggleSelectAll() {
+            if (this.selectAll) {
+                // Select all visible users except parents
+                const checkboxes = document.querySelectorAll('input[type="checkbox"][x-model="selectedUsers"]:not(:disabled)');
+                const ids = [];
+                checkboxes.forEach(cb => {
+                    const row = cb.closest('[x-show]');
+                    if (row && row.style.display !== 'none') {
+                        ids.push(cb.value);
+                    }
+                });
+                this.selectedUsers = ids;
+            } else {
+                this.selectedUsers = [];
+            }
+        },
+
+        bulkApprove() {
+            if (this.selectedUsers.length === 0) return;
+            if (!confirm(`Yakin ingin menyetujui ${this.selectedUsers.length} pengguna?`)) return;
+
+            this.processing = true;
+            fetch('/users/bulk-approve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ user_ids: this.selectedUsers })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    alert('Gagal: ' + data.message);
+                    this.processing = false;
+                }
+            })
+            .catch(e => {
+                alert('Error: ' + e.message);
+                this.processing = false;
+            });
+        },
+
+        bulkReject() {
+            if (this.selectedUsers.length === 0) return;
+            if (!confirm(`Yakin ingin menolak ${this.selectedUsers.length} pengguna?`)) return;
+
+            this.processing = true;
+            fetch('/users/bulk-reject', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ user_ids: this.selectedUsers })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    alert('Gagal: ' + data.message);
+                    this.processing = false;
+                }
+            })
+            .catch(e => {
+                alert('Error: ' + e.message);
+                this.processing = false;
+            });
+        },
+
+        init() {
+            this.$watch('form.class_id', (value) => {
+                if (value) {
+                    const selectEl = this.$root.querySelector(`select[x-model="form.class_id"] option[value="${value}"]`);
+                    if (selectEl && selectEl.dataset.department) {
+                        this.form.department_id = selectEl.dataset.department;
+                    }
+                } else {
+                    this.form.department_id = '';
+                }
+            });
         }
     };
+}
+
+function studentSearchComponent() {
+    return {
+        searchQuery: '',
+        searchDepartmentId: '',
+        searchResults: [],
+        isSearching: false,
+        init() {
+            this.$watch('searchDepartmentId', () => {
+                this.searchStudents();
+            });
+            this.searchStudents();
+        },
+        searchStudents() {
+            this.isSearching = true;
+            let url = '/students/search?q=' + encodeURIComponent(this.searchQuery);
+            if (this.searchDepartmentId) {
+                url += '&department_id=' + encodeURIComponent(this.searchDepartmentId);
+            }
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    this.searchResults = data;
+                    this.isSearching = false;
+                })
+                .catch(err => {
+                    console.error(err);
+                    this.isSearching = false;
+                });
+        }
+    }
 }
 </script>

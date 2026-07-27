@@ -18,7 +18,7 @@
         <h3 class="mb-4 flex items-center gap-2 font-display"><x-icon name="id-card" class="w-5 h-5 text-primary"/>Informasi Profil</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg border border-border"><x-icon name="mail" class="w-5 h-5 text-muted-foreground"/><div><p class="text-xs text-muted-foreground">Email</p><p>{{ $student['email'] ?? '-' }}</p></div></div>
-            <div class="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg border border-border"><x-icon name="building-2" class="w-5 h-5 text-muted-foreground"/><div><p class="text-xs text-muted-foreground">Jurusan</p><p>{{ $student['department'] ?? '-' }}</p></div></div>
+            <div class="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg border border-border"><x-icon name="building-2" class="w-5 h-5 text-muted-foreground"/><div><p class="text-xs text-muted-foreground">Jurusan</p><p>{{ $student['department_name'] ?? '-' }}</p></div></div>
             <div class="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg border border-border"><x-icon name="calendar" class="w-5 h-5 text-muted-foreground"/><div><p class="text-xs text-muted-foreground">Tanggal Daftar</p><p>{{ isset($student['enrolledDate']) ? \Carbon\Carbon::parse($student['enrolledDate'])->locale('id')->isoFormat('D MMMM YYYY') : '-' }}</p></div></div>
             <div class="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg border border-border"><x-icon name="id-card" class="w-5 h-5 text-muted-foreground"/><div><p class="text-xs text-muted-foreground">NIS/NISN</p><p>{{ $student['nisn'] ?? $student['id'] ?? '-' }}</p></div></div>
         </div>

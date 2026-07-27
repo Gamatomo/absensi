@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('student_number')->unique();
             $table->string('nisn')->nullable()->unique();
-            $table->string('department')->nullable();
+            $table->foreignId('department_id')->nullable()->constrained('departments')->nullOnDelete();
             $table->date('enrolled_date')->nullable();
             $table->timestamps();
         });

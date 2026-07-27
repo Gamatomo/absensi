@@ -25,8 +25,8 @@
                 $late = $records->where('status', 'late')->count();
                 $rate = $total > 0 ? number_format((($present + $late) / $total) * 100, 1) : '0';
             @endphp
-            <div class="bg-card border border-border rounded-lg p-5 shadow-sm" x-show="!searchQuery || '{{ strtolower($student['name'].' '.$student['department']) }}'.includes(searchQuery.toLowerCase())">
-                <div class="flex justify-between mb-3"><div><h3 class="font-display">{{ $student['name'] }}</h3><p class="text-sm text-muted-foreground">{{ $student['department'] }}</p></div><span class="text-2xl font-display text-primary">{{ $rate }}%</span></div>
+            <div class="bg-card border border-border rounded-lg p-5 shadow-sm" x-show="!searchQuery || '{{ strtolower($student['name'].' '.$student['department_name']) }}'.includes(searchQuery.toLowerCase())">
+                <div class="flex justify-between mb-3"><div><h3 class="font-display">{{ $student['name'] }}</h3><p class="text-sm text-muted-foreground">{{ $student['department_name'] }}</p></div><span class="text-2xl font-display text-primary">{{ $rate }}%</span></div>
                 <div class="grid grid-cols-3 gap-2 text-center text-sm">
                     <div class="p-2 bg-chart-3/10 rounded border border-chart-3/20"><p class="font-medium text-chart-3">{{ $present }}</p><p class="text-xs text-muted-foreground">Hadir</p></div>
                     <div class="p-2 bg-chart-4/10 rounded border border-chart-4/20"><p class="font-medium text-chart-4">{{ $late }}</p><p class="text-xs text-muted-foreground">Telat</p></div>

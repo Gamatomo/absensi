@@ -13,7 +13,8 @@ class PortalDemoData
                 'email' => 'ahmad.fauzi@sekolah.ac.id',
                 'cardId' => 'CARD-001',
                 'faceId' => 'FACE-001',
-                'department' => 'Teknik Alat Berat',
+                'department_id' => 1,
+                'department_name' => 'Teknik Alat Berat',
                 'enrolledDate' => '2024-01-15',
                 'nisn' => '0012345678',
                 'phone' => '081234567890',
@@ -25,7 +26,8 @@ class PortalDemoData
                 'email' => 'siti.rahayu@sekolah.ac.id',
                 'cardId' => 'CARD-002',
                 'faceId' => 'FACE-002',
-                'department' => 'Teknik Informatika',
+                'department_id' => 2,
+                'department_name' => 'Teknik Informatika',
                 'enrolledDate' => '2024-01-15',
                 'nisn' => '0012345679',
                 'phone' => '081234567891',
@@ -92,9 +94,9 @@ class PortalDemoData
     public static function classes(): array
     {
         return [
-            ['id' => 'CLS001', 'name' => 'X-TAB-A', 'level' => 'X', 'department' => 'Teknik Alat Berat', 'homeroomTeacherId' => 'TCH001', 'homeroomTeacherName' => 'Budi Santoso', 'studentCount' => 32, 'academicYear' => '2025/2026', 'room' => 'Gedung A - Ruang 101'],
-            ['id' => 'CLS002', 'name' => 'X-TI-A', 'level' => 'X', 'department' => 'Teknik Informatika', 'homeroomTeacherId' => 'TCH002', 'homeroomTeacherName' => 'Dewi Anggraeni', 'studentCount' => 30, 'academicYear' => '2025/2026', 'room' => 'Gedung B - Ruang 201'],
-            ['id' => 'CLS003', 'name' => 'XI-TAB-A', 'level' => 'XI', 'department' => 'Teknik Alat Berat', 'homeroomTeacherId' => 'TCH001', 'homeroomTeacherName' => 'Budi Santoso', 'studentCount' => 28, 'academicYear' => '2025/2026', 'room' => 'Gedung A - Ruang 102'],
+            ['id' => 'CLS001', 'name' => 'X-TAB-A', 'level' => 'X', 'department_id' => 1, 'department' => 'Teknik Alat Berat', 'homeroomTeacherId' => 'TCH001', 'homeroomTeacherName' => 'Budi Santoso', 'studentCount' => 32, 'academicYear' => '2025/2026', 'room' => 'Gedung A - Ruang 101'],
+            ['id' => 'CLS002', 'name' => 'X-TI-A', 'level' => 'X', 'department_id' => 2, 'department' => 'Teknik Informatika', 'homeroomTeacherId' => 'TCH002', 'homeroomTeacherName' => 'Dewi Anggraeni', 'studentCount' => 30, 'academicYear' => '2025/2026', 'room' => 'Gedung B - Ruang 201'],
+            ['id' => 'CLS003', 'name' => 'XI-TAB-A', 'level' => 'XI', 'department_id' => 1, 'department' => 'Teknik Alat Berat', 'homeroomTeacherId' => 'TCH001', 'homeroomTeacherName' => 'Budi Santoso', 'studentCount' => 28, 'academicYear' => '2025/2026', 'room' => 'Gedung A - Ruang 102'],
         ];
     }
 

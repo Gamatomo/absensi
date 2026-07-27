@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Department;
 use App\Models\ParentGuardian;
 use App\Models\Student;
 use App\Models\Teacher;
@@ -16,6 +17,9 @@ class DatabaseSeeder extends Seeder
         // Admin Seeder
         $this->seedAdmin();
 
+        // Departments Seeder
+        $this->seedDepartments();
+
         // Teacher (Guru) Seeder
         $this->seedTeacher();
 
@@ -24,6 +28,9 @@ class DatabaseSeeder extends Seeder
 
         // Parent (Orang Tua) Seeder
         $this->seedParent();
+
+        // Pending Users for Verification Seeder
+        $this->seedPendingUsers();
     }
 
     private function seedAdmin(): void
@@ -53,6 +60,19 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+    }
+
+    private function seedDepartments(): void
+    {
+        $departments = [
+            'Teknik Informatika',
+            'Teknik Mesin',
+            'Teknik Alat Berat'
+        ];
+
+        foreach ($departments as $dept) {
+            Department::query()->firstOrCreate(['name' => $dept]);
+        }
     }
 
     private function seedTeacher(): void
@@ -122,7 +142,7 @@ class DatabaseSeeder extends Seeder
             [
                 'student_number' => 'STU001',
                 'nisn' => '0012345678',
-                'department' => 'Teknik Informatika',
+                'department_id' => Department::query()->where('name', 'Teknik Informatika')->first()->id,
                 'enrolled_date' => now()->subYears(2),
             ]
         );
@@ -145,7 +165,7 @@ class DatabaseSeeder extends Seeder
             [
                 'student_number' => 'STU002',
                 'nisn' => '0087654321',
-                'department' => 'Teknik Mesin',
+                'department_id' => Department::query()->where('name', 'Teknik Mesin')->first()->id,
                 'enrolled_date' => now()->subYear(),
             ]
         );
@@ -202,5 +222,47 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
+    }
+
+    private function seedPendingUsers(): void
+    {
+        // Unverified Student
+        User::query()->updateOrCreate(
+            ['email' => 'pendingstudent@sekolah.ac.id'],
+            [
+                'name' => 'Budi Pendatang Baru',
+                'password' => Hash::make('password'),
+                'role' => 'student',
+                'phone' => '089912341234',
+                'address' => 'Jalan Belum Verifikasi 1',
+                'is_active' => false,
+            ]
+        );
+
+        // Unverified Parent
+        User::query()->updateOrCreate(
+            ['email' => 'pendingparent@sekolah.ac.id'],
+            [
+                'name' => 'Bapak Budi',
+                'password' => Hash::make('password'),
+                'role' => 'parent',
+                'phone' => '089943214321',
+                'address' => 'Jalan Belum Verifikasi 2',
+                'is_active' => false,
+            ]
+        );
+
+        // Unverified Teacher
+        User::query()->updateOrCreate(
+            ['email' => 'pendingteacher@sekolah.ac.id'],
+            [
+                'name' => 'Guru Honorer Baru',
+                'password' => Hash::make('password'),
+                'role' => 'teacher',
+                'phone' => '089976547654',
+                'address' => 'Jalan Belum Verifikasi 3',
+                'is_active' => false,
+            ]
+        );
     }
 }
