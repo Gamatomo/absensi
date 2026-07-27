@@ -69,7 +69,7 @@
                         <x-icon name="building-2" class="w-5 h-5 text-muted-foreground"/>
                         <div>
                             <p class="text-xs text-muted-foreground">Jurusan</p>
-                            <p class="font-medium">{{ $user->student->department ?? '-' }}</p>
+                            <p class="font-medium">{{ $user->student->department->name ?? '-' }}</p>
                         </div>
                     </div>
                 @endif
